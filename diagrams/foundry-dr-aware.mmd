@@ -1,0 +1,31 @@
+flowchart LR
+    subgraph PRIMARY[Primary Region - EastUS2]
+        direction TB
+        DEV[Foundry Dev] --> DPROJ[BU Proj - Dev]
+        CERT[Foundry Cert] --> CPROJ[BU Proj - Cert]
+        PROD[Foundry Prod] --> PPROJ[BU Proj - Prod]
+
+        PPROJ --> APPS[50 Application Groups]
+        APPS --> PMODELS[Models]
+        APPS --> PAGENTS[Agents]
+        APPS --> PINDEX[Data and Indexes]
+    end
+
+    subgraph CENTRAL[DR Support Region - Central]
+        direction TB
+        CDR[Central DR Support]
+        CDR --> CINDEX[Replicated Data and Indexes]
+        CDR --> CMODELS[Standby Models]
+        CDR --> CLIMIT[Agent Deployment Not Supported]
+    end
+
+    subgraph FAILOVER[Failover Region - Agent-Capable]
+        direction TB
+        AREG[Secondary Agent-Capable Region]
+        AREG --> APROJ[Mirrored Prod-Critical Projects]
+        APROJ --> AMODELS[Models]
+        APROJ --> AAGENTS[Agents]
+    end
+
+    PROD -. replicate critical assets .-> CDR
+    PROD -. failover agent runtime .-> AREG

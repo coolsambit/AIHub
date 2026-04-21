@@ -1,0 +1,17 @@
+flowchart LR
+    BUDATA[BU Subscriptions - Approved Source Data]
+    INGEST[Ingestion and Chunking - Prod]
+    BUDATA --> INGEST
+
+    PRODF[Foundry Prod - EastUS2]
+    PRODF --> PRODBU[BU Proj - Prod]
+    PRODBU --> PRODAG[Application Groups]
+
+    PRODAG --> PRODM[Models]
+    PRODAG --> PRODA[Agents]
+    PRODAG --> PRODV[Vector Index - In Project]
+    PRODA -. query .-> PRODV
+    INGEST --> PRODV
+
+    PRODF --> PRODOBS[Observability and SLO Monitoring]
+    PRODF --> PRODSEC[Security and Policy Controls]

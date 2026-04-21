@@ -1,0 +1,17 @@
+flowchart LR
+    BUDATA[BU Subscriptions - Approved Source Data]
+    INGEST[Ingestion and Chunking - Cert]
+    BUDATA --> INGEST
+
+    CERTF[Foundry Cert - EastUS2]
+    CERTF --> CERTBU[BU Proj - Cert]
+    CERTBU --> CERTAG[Application Groups]
+
+    CERTAG --> CERTM[Models]
+    CERTAG --> CERTA[Agents]
+    CERTAG --> CERTV[Vector Index - In Project]
+    CERTA -. query .-> CERTV
+    INGEST --> CERTV
+
+    CERTF --> CERTOBS[Observability and Evaluation]
+    CERTF --> CERTSEC[Security and Policy Controls]

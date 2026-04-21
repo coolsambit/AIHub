@@ -1,0 +1,87 @@
+body {
+	margin: 0;
+	font-family: 'Segoe UI', Arial, sans-serif;
+	background: #f7f8fa;
+	color: #222;
+}
+
+.app-container {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.app-header {
+	background: #fff;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+	padding: 0 32px;
+	height: 64px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.header-title {
+	font-size: 1.5rem;
+	font-weight: 600;
+	letter-spacing: 1px;
+}
+
+.header-actions {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.sign-btn {
+	background: #2563eb;
+	color: #fff;
+	border: none;
+	border-radius: 6px;
+	padding: 8px 20px;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: background 0.2s;
+}
+.sign-btn:hover {
+	background: #1741a6;
+}
+
+.subscription-dropdown {
+	padding: 8px 12px;
+	border-radius: 6px;
+	border: 1px solid #d1d5db;
+	font-size: 1rem;
+	background: #f7f8fa;
+	color: #222;
+}
+
+.main-content {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.2rem;
+}
+
+.gradient-panel {
+	width: 100%;
+	max-width: 700px;
+	min-height: 60px;
+	margin: 0 auto;
+	padding: 24px 32px;
+	border: 3px solid #f00;
+	border-radius: 8px;
+	background: linear-gradient(90deg, #dbeafe 0%, #fef9c3 50%, #ffe4b3 100%);
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.welcome {
+	background: transparent;
+	padding: 0;
+	border-radius: 0;
+	box-shadow: none;
+}

@@ -1,0 +1,30 @@
+flowchart LR
+    BUDATA[BU Subscriptions - Source Data]
+    INGEST[Ingestion and Chunking - Dev]
+    BUDATA --> INGEST
+
+    DEVF[Foundry Dev - EastUS2]
+    DEVF --> DEVGOV[Shared Dev Governance]
+    DEVF --> DEVSH[Shared Dev Services]
+
+    DEVF --> BU1[BU Proj - Dev - BU1]
+    DEVF --> BU2[BU Proj - Dev - BU2]
+    DEVF --> BUN[BU Proj - Dev - BU N]
+
+    BU1 --> BU1M[Models]
+    BU1 --> BU1A[Agents]
+    BU1 --> BU1V[Vector Index - In Project]
+    BU1A -. query .-> BU1V
+    INGEST --> BU1V
+
+    BU2 --> BU2M[Models]
+    BU2 --> BU2A[Agents]
+    BU2 --> BU2V[Vector Index - In Project]
+    BU2A -. query .-> BU2V
+    INGEST --> BU2V
+
+    BUN --> BUNM[Models]
+    BUN --> BUNA[Agents]
+    BUN --> BUNV[Vector Index - In Project]
+    BUNA -. query .-> BUNV
+    INGEST --> BUNV

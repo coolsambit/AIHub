@@ -1,0 +1,16 @@
+flowchart TD
+    F[Azure AI Foundry]
+    F --> P[Projects]
+
+    P --> P1[Project: Development]
+    P --> P2[Project: Test]
+    P --> P3[Project: Production]
+
+    P1 --> M1[Models]
+    P1 --> A1[Agents]
+
+    P2 --> M2[Models]
+    P2 --> A2[Agents]
+
+    P3 --> M3[Models]
+    P3 --> A3[Agents]
