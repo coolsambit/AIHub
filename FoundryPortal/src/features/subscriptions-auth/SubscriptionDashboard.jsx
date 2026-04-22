@@ -5,9 +5,7 @@ import { loginRequest } from './msalClient';
 import { fetchSubscriptions } from '../../api/SubscriptionsApi';
 import { fetchFoundries } from '../../api/FoundriesApi';
 import { fetchProjects } from '../../api/ProjectsApi';
-
-
-
+import { fetchModels } from '../../api/ModelsApi';
 
 const SubscriptionDashboard = () => {
   const { instance, accounts, inProgress } = useMsal();
@@ -22,6 +20,10 @@ const SubscriptionDashboard = () => {
   const [projects, setProjects] = useState([]);
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
   const [selectedProject, setSelectedProject] = useState('');
+  // Models state
+  const [models, setModels] = useState([]);
+  const [isModelsLoading, setIsModelsLoading] = useState(false);
+  const [modelsError, setModelsError] = useState(null);
 
   // Fetch projects when Foundry changes
   useEffect(() => {
@@ -157,7 +159,44 @@ const SubscriptionDashboard = () => {
 	const displayResourceGroup = selectedFoundryData?.resource_group || '';
 	const displayResourceGroupRegion = selectedFoundryData?.resource_group_region || '';
 
-		return (
+	// Fetch models when Foundry, Subscription, and Foundry details are set, after projects are loaded
+	useEffect(() => {
+		// Only run after Foundry and Subscription are set, and Foundry details are available
+		const loadModels = async () => {
+			setModels([]);
+			setModelsError(null);
+			if (!selectedFoundry || !selectedSubscription) return;
+			// Find foundry details for resourceGroup, location, etc.
+			const foundryObj = foundries.find(f => String(f.name) === String(selectedFoundry));
+			if (!foundryObj || !foundryObj.resource_group) return;
+			try {
+				setIsModelsLoading(true);
+				if (isAuthenticated && accounts.length > 0) {
+					const accessToken = await getAccessToken();
+					const subscriptionId = selectedSubscription;
+					const resourceGroupName = foundryObj.resource_group;
+					const accountName = selectedFoundry;
+					// Optionally use foundryObj.location or foundryObj.version if needed
+					const apiVersion = foundryObj.version || "2025-06-01";
+					const data = await fetchModels(accessToken, subscriptionId, resourceGroupName, accountName, apiVersion);
+					setModels(data?.value || []);
+				}
+			} catch (err) {
+				setModelsError(`Models Load Error: ${err.message}`);
+				setModels([]);
+				console.error('Error fetching models:', err);
+			} finally {
+				setIsModelsLoading(false);
+			}
+		};
+		// Only trigger after projects are loaded (i.e., isProjectsLoading is false)
+		if (!isProjectsLoading) {
+			loadModels();
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedFoundry, selectedSubscription, foundries, isProjectsLoading, isAuthenticated, accounts]);
+
+	return (
 			<div className="space-y-8">
 				{/* Always-visible Welcome and Portal Description */}
 				<div className="bg-gradient-to-r from-blue-50 to-white border border-blue-100 text-blue-900 px-6 py-5 rounded-xl shadow-sm text-center">
@@ -272,10 +311,20 @@ const SubscriptionDashboard = () => {
 											<div className="mb-8">
 												<h4 className="text-lg font-semibold text-blue-700 mb-2">Pooled Model</h4>
 												<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-													{projects.length === 0 ? (
+													{isModelsLoading ? (
+														<div className="col-span-full text-blue-400 italic">Loading models...</div>
+													) : modelsError ? (
+														<div className="col-span-full text-red-500 italic">{modelsError}</div>
+													) : models.length === 0 ? (
 														<div className="col-span-full text-gray-400 italic">No pooled models found.</div>
 													) : (
-														<div className="col-span-full h-16"></div>
+														models.map((model, idx) => (
+															<div key={model.id || model.name || idx} className="bg-white border border-blue-100 rounded-lg p-4 shadow-sm flex flex-col items-start">
+																<div className="font-semibold text-blue-800">{model.name || model.id}</div>
+																<div className="text-xs text-gray-500">{model.properties?.modelFormat || model.modelFormat || ''}</div>
+																<div className="text-xs text-gray-500">{model.properties?.provisioningState || model.provisioningState || ''}</div>
+															</div>
+														))
 													)}
 												</div>
 											</div>
