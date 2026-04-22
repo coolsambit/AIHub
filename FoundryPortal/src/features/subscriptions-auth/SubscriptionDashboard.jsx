@@ -80,8 +80,8 @@ const SubscriptionDashboard = () => {
 				setError(null);
 				if (isAuthenticated && accounts.length > 0) {
 					const accessToken = await getAccessToken();
-					// Use the user's homeAccountId or localAccountId as userId
-					const userId = accounts[0]?.homeAccountId || accounts[0]?.localAccountId || '';
+					// Use the user's email (username) as userId
+					const userId = accounts[0]?.username || '';
 					const data = await fetchFoundries(accessToken, selectedSubscription, userId);
 					setFoundries(data || []);
 					setSelectedFoundry(''); // Reset foundry selection
