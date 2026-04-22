@@ -90,7 +90,11 @@ const SubscriptionDashboard = () => {
 					const data = await fetchFoundries(accessToken, selectedSubscription, userId);
 					console.log('[SubscriptionDashboard] Foundries API returned:', data);
 					setFoundries(data || []);
-					setSelectedFoundry(''); // Reset foundry selection
+					if (data && data.length > 0) {
+						setSelectedFoundry(data[0].id);
+					} else {
+						setSelectedFoundry('');
+					}
 				}
 			} catch (err) {
 				setError(`Foundry Load Error: ${err.message}`);
@@ -105,13 +109,11 @@ const SubscriptionDashboard = () => {
 	}, [selectedSubscription, instance, accounts, isAuthenticated, inProgress]);
 
 	// Derive the location string for display
-	const displayLocation = selectedFoundry 
-		? (
-			locationMap[selectedFoundry] || 
-			foundries.find(f => String(f.id) === String(selectedFoundry))?.location || 
-			'Location not found'
-		  )
-		: 'Select foundry...';
+	const selectedFoundryData = foundries.find(f => String(f.id) === String(selectedFoundry));
+
+	const displayLocation =  selectedFoundryData?.location || ''
+	const displayResourceGroup = selectedFoundryData?.resource_group || '';
+	const displayResourceGroupRegion = selectedFoundryData?.resource_group_region || '';
 
 		return (
 			<div className="space-y-8">
@@ -180,7 +182,7 @@ const SubscriptionDashboard = () => {
 							   <label className="block text-sm font-semibold text-gray-700">Location</label>
 							   <input
 								   type="text"
-								   value={selectedFoundry ? (locationMap[selectedFoundry] || foundries.find(f => String(f.id) === String(selectedFoundry))?.location || 'N/A') : ''}
+								   value={displayLocation}
 								   readOnly
 								   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
 							   />
@@ -191,7 +193,7 @@ const SubscriptionDashboard = () => {
 							   <label className="block text-sm font-semibold text-gray-700">Resource Group</label>
 							   <input
 								   type="text"
-								   value={selectedFoundry ? (foundries.find(f => String(f.id) === String(selectedFoundry))?.resourceGroup || 'N/A') : ''}
+								   value={displayResourceGroup}
 								   readOnly
 								   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
 							   />
@@ -202,7 +204,7 @@ const SubscriptionDashboard = () => {
 							   <label className="block text-sm font-semibold text-gray-700">Resource Group Region</label>
 							   <input
 								   type="text"
-								   value={selectedFoundry ? (foundries.find(f => String(f.id) === String(selectedFoundry))?.resourceGroupLocation || 'N/A') : ''}
+								   value={displayResourceGroupRegion}
 								   readOnly
 								   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
 							   />
@@ -220,15 +222,15 @@ const SubscriptionDashboard = () => {
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 							<div className="bg-white/80 rounded-lg p-4 border border-blue-100">
 								<label className="block text-xs font-semibold text-blue-600">Location</label>
-								<div className="text-blue-900 font-medium">{displayLocation}</div>
+								<div className="text-blue-900 font-medium">{displayLocation || 'N/A'}</div>
 							</div>
 							<div className="bg-white/80 rounded-lg p-4 border border-blue-100">
 								<label className="block text-xs font-semibold text-blue-600">Resource Group</label>
-								<div className="text-blue-900 font-medium">{foundries.find(f => String(f.id) === String(selectedFoundry))?.resourceGroup || 'N/A'}</div>
+								<div className="text-blue-900 font-medium">{displayResourceGroup || 'N/A'}</div>
 							</div>
 							<div className="bg-white/80 rounded-lg p-4 border border-blue-100">
 								<label className="block text-xs font-semibold text-blue-600">Resource Group Location</label>
-								<div className="text-blue-900 font-medium">{foundries.find(f => String(f.id) === String(selectedFoundry))?.resourceGroupLocation || 'N/A'}</div>
+								<div className="text-blue-900 font-medium">{displayResourceGroupRegion || 'N/A'}</div>
 							</div>
 						</div>
 					</div>
