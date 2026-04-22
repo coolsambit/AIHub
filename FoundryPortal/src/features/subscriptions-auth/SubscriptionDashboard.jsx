@@ -1,19 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from './msalClient';
+
 import { fetchSubscriptions } from '../../api/SubscriptionsApi';
 import { fetchFoundries } from '../../api/FoundriesApi';
+import { fetchProjects } from '../../api/ProjectsApi';
+
+
+
 
 const SubscriptionDashboard = () => {
-	const { instance, accounts, inProgress } = useMsal();
-	const isAuthenticated = useIsAuthenticated();
-	const [subscriptions, setSubscriptions] = useState([]);
-	const [isLoading, setIsLoading] = useState(true);
-	const [error, setError] = useState(null);
-	const [selectedSubscription, setSelectedSubscription] = useState('');
-	const [foundries, setFoundries] = useState([]);
-	const [isFoundriesLoading, setIsFoundriesLoading] = useState(false);
-	const [selectedFoundry, setSelectedFoundry] = useState('');
+  const { instance, accounts, inProgress } = useMsal();
+  const isAuthenticated = useIsAuthenticated();
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedSubscription, setSelectedSubscription] = useState('');
+  const [foundries, setFoundries] = useState([]);
+  const [isFoundriesLoading, setIsFoundriesLoading] = useState(false);
+  const [selectedFoundry, setSelectedFoundry] = useState(''); // stores foundry.name
+  const [projects, setProjects] = useState([]);
+  const [isProjectsLoading, setIsProjectsLoading] = useState(false);
+  const [selectedProject, setSelectedProject] = useState('');
+
+  // Fetch projects when Foundry changes
+  useEffect(() => {
+    const loadProjects = async () => {
+      if (!selectedFoundry || !selectedSubscription) {
+        setProjects([]);
+        setSelectedProject('');
+        return;
+      }
+      try {
+        setIsProjectsLoading(true);
+        setError(null);
+        if (isAuthenticated && accounts.length > 0) {
+          const accessToken = await getAccessToken();
+          const foundryName = selectedFoundry;
+          const data = await fetchProjects(accessToken, foundryName, selectedSubscription);
+          const projectList = data || [];
+          setProjects(projectList);
+          if (projectList.length > 0) {
+            setSelectedProject(projectList[0].id || projectList[0].name || '');
+          } else {
+            setSelectedProject('');
+          }
+        }
+      } catch (err) {
+        setError(`Project Load Error: ${err.message}`);
+        console.error('Error fetching projects:', err);
+      } finally {
+        setIsProjectsLoading(false);
+      }
+    };
+    loadProjects();
+  }, [selectedFoundry, selectedSubscription, isAuthenticated, accounts]);
+
 
 	const locationMap = {
 		'f1': 'North America - East US',
@@ -91,7 +133,7 @@ const SubscriptionDashboard = () => {
 					console.log('[SubscriptionDashboard] Foundries API returned:', data);
 					setFoundries(data || []);
 					if (data && data.length > 0) {
-						setSelectedFoundry(data[0].id);
+						setSelectedFoundry(data[0].name);
 					} else {
 						setSelectedFoundry('');
 					}
@@ -109,7 +151,7 @@ const SubscriptionDashboard = () => {
 	}, [selectedSubscription, instance, accounts, isAuthenticated, inProgress]);
 
 	// Derive the location string for display
-	const selectedFoundryData = foundries.find(f => String(f.id) === String(selectedFoundry));
+	const selectedFoundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
 
 	const displayLocation =  selectedFoundryData?.location || ''
 	const displayResourceGroup = selectedFoundryData?.resource_group || '';
@@ -150,30 +192,32 @@ const SubscriptionDashboard = () => {
 						   {/* Foundry Dropdown */}
 						   <div className="space-y-2">
 							   <label className="block text-sm font-semibold text-gray-700">Foundry</label>
-							   <select 
-								   value={selectedFoundry}
-								   onChange={(e) => setSelectedFoundry(e.target.value)}
-								   disabled={!selectedSubscription || isFoundriesLoading}
-								   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white disabled:bg-gray-50"
-							   >
-								   <option value="">{isFoundriesLoading ? 'Loading foundries...' : 'Select a Foundry...'}</option>
-								   {foundries.map(f => (
-									   <option key={f.id} value={f.id}>{f.name}</option>
-								   ))}
-							   </select>
+							<select 
+								value={selectedFoundry}
+								onChange={(e) => setSelectedFoundry(e.target.value)}
+								disabled={!selectedSubscription || isFoundriesLoading}
+								className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white disabled:bg-gray-50"
+							>
+								<option value="">{isFoundriesLoading ? 'Loading foundries...' : 'Select a Foundry...'}</option>
+								{foundries.map(f => (
+									<option key={f.name} value={f.name}>{f.name}</option>
+								))}
+							</select>
 						   </div>
 
 						   {/* Project Dropdown */}
 						   <div className="space-y-2">
 							   <label className="block text-sm font-semibold text-gray-700">Project</label>
-							   <select 
-								   value={''}
-								   onChange={() => {}}
-								   disabled={true}
+							   <select
+								   value={selectedProject}
+								   onChange={e => setSelectedProject(e.target.value)}
+								   disabled={isProjectsLoading || !selectedFoundry}
 								   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white disabled:bg-gray-50"
 							   >
-								   <option value="">Select a Project...</option>
-								   {/* TODO: Populate with real project options */}
+								   <option value="">{isProjectsLoading ? 'Loading projects...' : 'Select a Project...'}</option>
+								   {projects.map(p => (
+									   <option key={p.id || p.name} value={p.id || p.name}>{p.name || p.id}</option>
+								   ))}
 							   </select>
 						   </div>
 
@@ -212,67 +256,67 @@ const SubscriptionDashboard = () => {
 					   </div>
 				   </div>
 
-				{/* Foundry Details Panel - visually distinct, light theme */}
-				{selectedFoundry && (
-					<div className="bg-gradient-to-br from-white via-blue-50 to-blue-100 p-8 rounded-2xl shadow-lg border border-blue-200 mt-2">
-						<h3 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
-							<svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 20.5C6.201 20.5 1 15.299 1 9.5S6.201-1.5 12-1.5 23 4.701 23 10.5 17.799 20.5 12 20.5z" /></svg>
-							Foundry Information
-						</h3>
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-							<div className="bg-white/80 rounded-lg p-4 border border-blue-100">
-								<label className="block text-xs font-semibold text-blue-600">Location</label>
-								<div className="text-blue-900 font-medium">{displayLocation || 'N/A'}</div>
-							</div>
-							<div className="bg-white/80 rounded-lg p-4 border border-blue-100">
-								<label className="block text-xs font-semibold text-blue-600">Resource Group</label>
-								<div className="text-blue-900 font-medium">{displayResourceGroup || 'N/A'}</div>
-							</div>
-							<div className="bg-white/80 rounded-lg p-4 border border-blue-100">
-								<label className="block text-xs font-semibold text-blue-600">Resource Group Location</label>
-								<div className="text-blue-900 font-medium">{displayResourceGroupRegion || 'N/A'}</div>
-							</div>
-						</div>
-					</div>
-				)}
 
-				{/* Details Section */}
-				   <div className="flex justify-between items-center mt-8">
-					   <h2 className="text-2xl font-bold text-gray-800">Foundry Details</h2>
-				   </div>
 
-				{/* Logic for showing specific selection details or error states */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-					{isLoading ? (
-						<div className="col-span-full py-20 flex justify-center">
-							<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-						</div>
-					) : error ? (
-						<div className="col-span-full bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-							<p className="font-semibold">Error loading subscriptions</p>
-							<p className="text-sm">{error}</p>
-						</div>
-					) : selectedSubscription ? (
-						// Show details for the selected subscription
-						subscriptions.filter(sub => sub.id === selectedSubscription).map((sub) => (
-							<div key={sub.id} className="col-span-full bg-white p-6 rounded-xl shadow-sm border border-blue-200">
-								<div className="flex items-center space-x-4 mb-4">
-									<div className="h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
-									<h3 className="text-xl font-bold text-gray-900">{sub.name}</h3>
+								{/* 2x2 grid: Model Information, Agents Available, Tools, Foundry Connections */}
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
+									{/* Left column */}
+									<div className="flex flex-col gap-8">
+										{/* Model Information Panel */}
+										<div className="bg-gradient-to-br from-white via-blue-50 to-blue-100 p-8 rounded-2xl shadow-lg border border-blue-200">
+											<h3 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+												<svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 20.5C6.201 20.5 1 15.299 1 9.5S6.201-1.5 12-1.5 23 4.701 23 10.5 17.799 20.5 12 20.5z" /></svg>
+												Model Information
+											</h3>
+											{/* Pooled Model Section (all models for now) */}
+											<div className="mb-8">
+												<h4 className="text-lg font-semibold text-blue-700 mb-2">Pooled Model</h4>
+												<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+													{projects.length === 0 ? (
+														<div className="col-span-full text-gray-400 italic">No pooled models found.</div>
+													) : (
+														<div className="col-span-full h-16"></div>
+													)}
+												</div>
+											</div>
+										</div>
+										{/* Tools Panel */}
+										<div className="bg-gradient-to-br from-white via-yellow-50 to-yellow-100 p-8 rounded-2xl shadow-lg border border-yellow-200">
+											<h3 className="text-xl font-bold text-yellow-900 mb-4 flex items-center gap-2">
+												<svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/><path strokeLinecap="round" strokeLinejoin="round" d="M9 9h6v6H9z" /></svg>
+												Tools
+											</h3>
+											<div className="mb-8">
+												<div className="col-span-full h-16"></div>
+											</div>
+										</div>
+									</div>
+									{/* Right column */}
+									<div className="flex flex-col gap-8">
+										{/* Agents Available Panel */}
+										<div className="bg-gradient-to-br from-white via-green-50 to-green-100 p-8 rounded-2xl shadow-lg border border-green-200">
+											<h3 className="text-xl font-bold text-green-900 mb-4 flex items-center gap-2">
+												<svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none"/><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /></svg>
+												Agents Available
+											</h3>
+											<div className="mb-8">
+												<div className="col-span-full h-16"></div>
+											</div>
+										</div>
+										{/* Foundry Connections Panel */}
+										<div className="bg-gradient-to-br from-white via-purple-50 to-purple-100 p-8 rounded-2xl shadow-lg border border-purple-200">
+											<h3 className="text-xl font-bold text-purple-900 mb-4 flex items-center gap-2">
+												<svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m9-5a4 4 0 1 0-8 0 4 4 0 0 0 8 0zm-4 4v4" /></svg>
+												Foundry Connections
+											</h3>
+											<div className="mb-8">
+												<div className="col-span-full h-16"></div>
+											</div>
+										</div>
+									</div>
 								</div>
-								<p className="text-gray-600 mb-4">{sub.description || 'Cloud-native foundry environment.'}</p>
-								<div className="flex space-x-6 text-sm">
-									<div className="text-gray-500 font-mono">ID: {sub.id}</div>
-									<div className="text-blue-600 font-semibold uppercase tracking-wider">Status: {sub.status}</div>
-								</div>
-							</div>
-						))
-					) : (
-						<div className="col-span-full text-center py-20 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
-							Please select a subscription from the dropdown above to view details.
-						</div>
-					)}
-				</div>
+
+				   {/* Foundry Details section removed as requested */}
 			</div>
 		);
 };

@@ -60,8 +60,12 @@ def list_projects(
     """
     if not foundryName or not subscriptionId:
         raise HTTPException(status_code=400, detail="Missing required 'foundryName' or 'subscriptionId' query parameter.")
+    # Accept both /subscriptions/{guid} and just {guid}
+    sub_id = subscriptionId
+    if sub_id.startswith("/subscriptions/"):
+        sub_id = sub_id[len("/subscriptions/"):]
     credential = DefaultAzureCredential()
-    projects = ProjectsAPI.list_by_subscription(subscriptionId, foundryName, credential)
+    projects = ProjectsAPI.list_by_subscription(sub_id, foundryName, credential)
     return [ProjectOut(**p) for p in projects]
 
 class ProjectsAPI(AIHub):

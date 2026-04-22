@@ -29,66 +29,7 @@ async def list_foundries(
 
 
 
-# Response model for foundry details
-class FoundryDetailsResponse(BaseModel):
-    resource_group: str | None
-    resource_group_region: str | None
-    projects: list[dict]
 
-# Real endpoint for foundry details
-@router.get("/details", response_model=FoundryDetailsResponse, summary="Get foundry details (resource group, region, projects)")
-async def foundry_details(
-    foundry: str = Query(..., description="Name of the Foundry instance (e.g., Aids-Foundry-Dev)"),
-    subscription_id: str = Query(..., alias="subscriptionId", description="Azure Subscription ID")
-) -> FoundryDetailsResponse:
-    # --- DYNAMIC LOGIC ---
-    # Import credential/project state from a shared location or dependency injection
-    # For now, use a placeholder for credential and project cache
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-    from coreAPIs.projects.api import ProjectsAPI
-    from azure.identity import DefaultAzureCredential
-    import os
-    credential = DefaultAzureCredential()
-    projects = []
-    try:
-        from coreAPIs.foundries.api import FoundriesAPI
-        foundries_api = FoundriesAPI(projects, credential)
-        foundry_obj = None
-        configured = foundries_api.list_items("", subscription_id)
-        logging.debug(f"[foundry_details] Found configured foundries: {configured}")
-        for item in configured:
-            if item.get("name") == foundry:
-                foundry_obj = item
-                break
-        if not foundry_obj:
-            logging.debug(f"[foundry_details] Foundry '{foundry}' not found in configured/discovered list.")
-            raise Exception(f"Foundry '{foundry}' not found.")
-        resource_group = foundry_obj.get("resource_group")
-        resource_group_region = foundry_obj.get("resource_group_region")
-        endpoint = foundry_obj.get("endpoint")
-        logging.debug(f"[foundry_details] Foundry '{foundry}': resource_group={resource_group}, region={resource_group_region}, endpoint={endpoint}")
-        rows = []
-        if endpoint:
-            try:
-                rows = ProjectsAPI(endpoint, credential).list()
-                logging.debug(f"[foundry_details] Projects for endpoint {endpoint}: {rows}")
-            except Exception as proj_exc:
-                logging.debug(f"[foundry_details] Error fetching projects for endpoint {endpoint}: {proj_exc}")
-        else:
-            logging.debug(f"[foundry_details] No endpoint found for foundry '{foundry}'")
-        return FoundryDetailsResponse(
-            resource_group=resource_group,
-            resource_group_region=resource_group_region,
-            projects=rows,
-        )
-    except Exception as e:
-        logging.debug(f"[foundry_details] Exception: {e}")
-        return FoundryDetailsResponse(
-            resource_group=None,
-            resource_group_region=None,
-            projects=[],
-        )
 
 
 from dataclasses import dataclass
