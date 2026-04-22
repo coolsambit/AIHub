@@ -25,7 +25,7 @@ app.add_middleware(
 app.include_router(projects_router, prefix="/projects", tags=["projects"])
 app.include_router(models_router, prefix="/models", tags=["models"])
 app.include_router(subscriptions_router, prefix="/subscriptions", tags=["subscriptions"])
-app.include_router(foundries_router, prefix="/v1/base/foundries", tags=["foundries"])
+app.include_router(foundries_router, prefix="/foundries", tags=["foundries"])
 app.include_router(agents_router, prefix="/agents", tags=["agents"])
 app.include_router(connections_router, prefix="/connections", tags=["connections"])
 

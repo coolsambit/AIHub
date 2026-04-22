@@ -8,8 +8,10 @@ from azure.identity import DefaultAzureCredential
 router = APIRouter()
 __all__ = ["router"]
 
+
 # List all foundries for the current user and subscription
 @router.get("/", summary="List all foundries for the current user and subscription")
+@router.get("", include_in_schema=False)
 async def list_foundries(
     request: Request,
     user_id: str = Query("", alias="userId", description="User ID (optional, for delegated scenarios)"),

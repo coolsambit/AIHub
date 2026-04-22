@@ -82,7 +82,13 @@ const SubscriptionDashboard = () => {
 					const accessToken = await getAccessToken();
 					// Use the user's email (username) as userId
 					const userId = accounts[0]?.username || '';
+					console.log('[SubscriptionDashboard] Calling fetchFoundries with:', {
+						accessToken: accessToken ? '[REDACTED]' : undefined,
+						selectedSubscription,
+						userId
+					});
 					const data = await fetchFoundries(accessToken, selectedSubscription, userId);
+					console.log('[SubscriptionDashboard] Foundries API returned:', data);
 					setFoundries(data || []);
 					setSelectedFoundry(''); // Reset foundry selection
 				}
