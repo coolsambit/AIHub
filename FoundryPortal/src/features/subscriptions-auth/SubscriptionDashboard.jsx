@@ -8,6 +8,7 @@ import { fetchSubscriptions } from '../../api/SubscriptionsApi';
 import { fetchFoundries } from '../../api/FoundriesApi';
 import { fetchProjects } from '../../api/ProjectsApi';
 import { fetchModels } from '../../api/ModelsApi';
+import { fetchFoundryKeys } from '../../api/KeysApi';
 
 
 const SubscriptionDashboard = () => {
@@ -34,31 +35,25 @@ const SubscriptionDashboard = () => {
 	const [isModelsLoading, setIsModelsLoading] = useState(false);
 	const [error, setError] = useState(null);
 
-
-		// Helper to get access token
-		const getAccessToken = async () => {
-			if (inProgress !== "none" || accounts.length === 0) return null;
-			const tokenResponse = await instance.acquireTokenSilent({
-				...loginRequest,
-				account: accounts[0],
-			});
-			return tokenResponse.accessToken;
-		};
+	const [apiKey1, setApiKey1] = useState('');
+	const [apiKey2, setApiKey2] = useState('');
 
 
-		// 1. Load Subscriptions on login
+	const getAccessToken = () =>
+		instance.acquireTokenSilent({ ...loginRequest, account: accounts[0] })
+			.then(result => result.accessToken)
+			.catch(() => null);
+
+		// 1. Load Subscriptions when accounts are populated
 		useEffect(() => {
-			if (isAuthenticated && inProgress === "none") {
-				setIsLoading(true);
-				getAccessToken().then(token => {
-					if (!token) return;
-					fetchSubscriptions(token)
-						.then(data => setSubscriptions(data || []))
-						.catch(err => setError(err.message))
-						.finally(() => setIsLoading(false));
-				});
-			}
-		}, [isAuthenticated, inProgress]);
+			if (!isAuthenticated || accounts.length === 0) return;
+			setIsLoading(true);
+			instance.acquireTokenSilent({ ...loginRequest, account: accounts[0] })
+				.then(result => fetchSubscriptions(result.accessToken))
+				.then(data => setSubscriptions(data || []))
+				.catch(err => setError(err.message))
+				.finally(() => setIsLoading(false));
+		}, [isAuthenticated, accounts.length]);
 
 
 		// 2. Load Foundries when subscription changes
@@ -115,6 +110,28 @@ const SubscriptionDashboard = () => {
 			}
 		}, [selectedFoundry, selectedSubscription, foundries]);
 
+		// 5. Load API keys when foundry changes
+		useEffect(() => {
+			const foundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
+			if (selectedFoundry && selectedSubscription && foundryData?.resource_group) {
+				getAccessToken().then(token => {
+					if (!token) return;
+					fetchFoundryKeys(token, selectedSubscription, foundryData.resource_group, selectedFoundry)
+						.then(data => {
+							setApiKey1(data?.key1 || '');
+							setApiKey2(data?.key2 || '');
+						})
+						.catch(() => {
+							setApiKey1('');
+							setApiKey2('');
+						});
+				});
+			} else {
+				setApiKey1('');
+				setApiKey2('');
+			}
+		}, [selectedFoundry, selectedSubscription, foundries]);
+
 	// Static location map for demonstration, normally part of foundry data
 	const locationMap = {
 		'Foundry North America': 'East US',
@@ -128,6 +145,7 @@ const SubscriptionDashboard = () => {
 		? locationMap[selectedFoundry] || selectedFoundryData?.location || 'N/A'
 		: '';
 
+	const displayProjectEndpoint = selectedFoundryData?.endpoint || '';
 	const displayResourceGroup = selectedFoundryData?.resource_group || '';
 	const displayResourceGroupRegion = selectedFoundryData?.resource_group_region || '';
 
@@ -155,7 +173,7 @@ const SubscriptionDashboard = () => {
 					)}
 				</div>
 
-				{error && (
+{error && (
 					<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
 						<strong>Error:</strong> {error}
 					</div>
@@ -163,6 +181,7 @@ const SubscriptionDashboard = () => {
 
 				{/* Configuration Panel */}
 				<div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 space-y-6">
+					{/* Row 1: Dropdowns */}
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">Subscription</label>
@@ -208,7 +227,10 @@ const SubscriptionDashboard = () => {
 								))}
 							</select>
 						</div>
+					</div>
 
+					{/* Row 2: Location, Resource Group, Resource Group Region */}
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">Location</label>
 							<input
@@ -237,6 +259,61 @@ const SubscriptionDashboard = () => {
 								readOnly
 								className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
 							/>
+						</div>
+					</div>
+
+					{/* Row 3: Foundry Endpoint, API Key 1, API Key 2 */}
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+						<div className="space-y-2">
+							<label className="block text-sm font-semibold text-gray-700">Foundry Endpoint</label>
+							<input
+								type="text"
+								value={displayProjectEndpoint}
+								readOnly
+								className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<label className="block text-sm font-semibold text-gray-700">API Key 1</label>
+							<div className="flex items-center gap-2">
+								<input
+									type="password"
+									value={apiKey1}
+									readOnly
+									placeholder={selectedFoundry ? '—' : ''}
+									className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
+								/>
+								<button
+									onClick={() => navigator.clipboard.writeText(apiKey1)}
+									disabled={!apiKey1}
+									title="Copy API Key 1"
+									className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+								>
+									<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+								</button>
+							</div>
+						</div>
+
+						<div className="space-y-2">
+							<label className="block text-sm font-semibold text-gray-700">API Key 2</label>
+							<div className="flex items-center gap-2">
+								<input
+									type="password"
+									value={apiKey2}
+									readOnly
+									placeholder={selectedFoundry ? '—' : ''}
+									className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
+								/>
+								<button
+									onClick={() => navigator.clipboard.writeText(apiKey2)}
+									disabled={!apiKey2}
+									title="Copy API Key 2"
+									className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+								>
+									<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>

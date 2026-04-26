@@ -20,7 +20,7 @@ function App() {
 		if (provider === 'google') {
 			window.location.href = '/auth/google';
 		} else if (provider === 'microsoft') {
-			instance.loginPopup(loginRequest)
+			instance.loginRedirect(loginRequest)
 				.catch((e) => console.error(e));
 		}
 	};
