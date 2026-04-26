@@ -16,6 +16,7 @@ router = APIRouter()
 # Updated endpoint for listing models via Azure REST API
 
 @router.get("/", summary="List all models (deployments)")
+@router.get("", summary="List all models (deployments)")
 def list_models(
     subscriptionId: str = Query(..., description="Azure Subscription ID"),
     resourceGroupName: str = Query(..., description="Azure Resource Group Name"),

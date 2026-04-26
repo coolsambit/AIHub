@@ -2,14 +2,18 @@ import React from 'react';
 import { useMsal, useIsAuthenticated, AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react';
 import { loginRequest } from './features/subscriptions-auth/msalClient';
 
-const Header = () => {
+const Header = ({ onSignInClick }) => {
 	const { instance, accounts } = useMsal();
 	const isAuthenticated = useIsAuthenticated();
 	const activeAccount = accounts[0];
 
-	const handleLogin = () => {
-		instance.loginRedirect(loginRequest).catch((e) => console.error(e));
-	};
+	 const handleLogin = () => {
+		 if (onSignInClick) {
+			 onSignInClick();
+		 } else {
+			 instance.loginRedirect(loginRequest).catch((e) => console.error(e));
+		 }
+	 };
 
 	const handleLogout = () => {
 		instance.logoutRedirect({ postLogoutRedirectUri: "/" });

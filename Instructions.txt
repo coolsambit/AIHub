@@ -1,0 +1,30 @@
+
+About the system built so far:
+
+AIHubBackend is the API layer. (Rest Layer)
+FoundryPortal is the frontend.
+And yet FoundryPortal UI layer should not directly call the backend.
+It should go through a composite layer inside the FoundryPortal /src/api layer.
+
+The Backend APIs are working fine. I tested it.
+The frontend is giving problem.
+
+Desired Application flow: 
+
+-User see a default page and can navigate around but there is not much.
+-User must login to get the details.
+-User has two choices to login. Microsoft or Google.
+-Once user  Sign In, the Subscription dropdown should load only the Subs assigned to him.
+(SubscriptionApi.js)
+-Upon selection of a Sub, it should find all the foundries. 
+-When user selects a foundry, it should population, location, Resource group, Resource Group Region, and projects.
+-Once this is loaded it should load all the Models into Model Information pannel under pooled model.
+-The models should showup and are clickable.
+-When user clicks the model link it should open in a Modal box.
+
+
+Known problems: 
+0) Login is cunky. It needs to be Authenticated twice. Somewhere it does not capture properly.
+1) Subscription loads but it is not showing in the dropdown.
+2) Models don't load properly.
+3) Modal dialog box never worked properly.
