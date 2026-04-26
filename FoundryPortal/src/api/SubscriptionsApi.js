@@ -19,5 +19,8 @@ export async function fetchSubscriptions(accessToken) {
 		data = null;
 	}
 	if (!res.ok) throw new Error("Failed to load subscriptions");
-	return data;
+	return (data || []).map(sub => ({
+		id: sub.subscriptionId || sub.id,
+		name: sub.displayName || sub.name || sub.subscriptionId || 'Unknown',
+	}));
 }
