@@ -11,11 +11,15 @@ The frontend is giving problem.
 
 Desired Application flow: 
 
--User see a default page and can navigate around but there is not much.
+-User see a default page and can navigate around but there is not much (Home.jsx).
 -User must login to get the details.
 -User has two choices to login. Microsoft or Google.
--Once user  Sign In, the Subscription dropdown should load only the Subs assigned to him.
-(SubscriptionApi.js)
+-Once user  Sign In, the User stays on the home page.
+-There is a top navigation added Home, Inventory, Model Hub, Agent Hub.
+-Home Tab is basic information:
+-Inventory Tab has Subscription and associated information.
+    Things like: Foundry => Project => Model
+- The inventory hub loads all the Subscriptions in a dropdown
 -Upon selection of a Sub, it should find all the foundries. 
 -When user selects a foundry, it should population, location, Resource group, Resource Group Region, and projects.
 -Once this is loaded it should load all the Models into Model Information pannel under pooled model.

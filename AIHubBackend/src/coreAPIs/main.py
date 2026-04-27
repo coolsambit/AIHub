@@ -8,6 +8,7 @@ from coreAPIs.foundries.api import router as foundries_router
 from coreAPIs.agents.api import router as agents_router
 from coreAPIs.connections.api import router as connections_router
 from coreAPIs.keys.api import router as keys_router
+from coreAPIs.Roles.api import router as cs_openai_roles_router
 
 
 app = FastAPI(title="Core APIs Service", version="1.0.0")
@@ -30,6 +31,7 @@ app.include_router(foundries_router, prefix="/foundries", tags=["foundries"])
 app.include_router(agents_router, prefix="/agents", tags=["agents"])
 app.include_router(connections_router, prefix="/connections", tags=["connections"])
 app.include_router(keys_router, prefix="/keys", tags=["keys"])
+app.include_router(cs_openai_roles_router, prefix="/Roles", tags=["Roles"])
 
 
 if __name__ == "__main__":
