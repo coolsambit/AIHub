@@ -9,6 +9,7 @@ const SubscriptionDashboard = ({
 	foundries, selectedFoundry, setSelectedFoundry, isFoundriesLoading,
 	projects, selectedProject, setSelectedProject, isProjectsLoading,
 	models, isModelsLoading,
+	agents, isAgentsLoading,
 	apiKey1, apiKey2,
 	error,
 }) => {
@@ -102,17 +103,23 @@ const SubscriptionDashboard = ({
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">Subscription</label>
-							<select
-								value={selectedSubscription}
-								onChange={(e) => setSelectedSubscription(e.target.value)}
-								disabled={isLoading || !isAuthenticated}
-								className={`w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${!isAuthenticated ? 'bg-gray-100 text-gray-700' : 'bg-white'} disabled:bg-gray-100`}
-							>
-								<option value="">Select a Subscription...</option>
-								{subscriptions.map(sub => (
-									<option key={sub.id} value={sub.id}>{sub.name}</option>
-								))}
-							</select>
+							{!isLoading && isAuthenticated && subscriptions.length === 0 ? (
+								<div className="bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg px-4 py-2.5 text-sm">
+									No AI-enabled subscriptions found. Please contact your Admin to get a Cognitive Services or Azure AI role assigned.
+								</div>
+							) : (
+								<select
+									value={selectedSubscription}
+									onChange={(e) => setSelectedSubscription(e.target.value)}
+									disabled={isLoading || !isAuthenticated}
+									className={`w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${!isAuthenticated ? 'bg-gray-100 text-gray-700' : 'bg-white'} disabled:bg-gray-100`}
+								>
+									<option value="">{isLoading ? 'Loading...' : 'Select a Subscription...'}</option>
+									{subscriptions.map(sub => (
+										<option key={sub.id} value={sub.id}>{sub.name}</option>
+									))}
+								</select>
+							)}
 						</div>
 
 						<div className="space-y-2">
@@ -253,10 +260,26 @@ const SubscriptionDashboard = ({
 							<div className="w-1/5 shrink-0 flex flex-col">
 								<h4 className="text-sm font-semibold text-purple-700 mb-2">Agents</h4>
 								<div className="flex flex-col gap-2">
-									{!selectedFoundry ? (
-										<p className="text-gray-400 italic text-xs">Select a foundry.</p>
-									) : (
+									{!selectedProject ? (
+										<p className="text-gray-400 italic text-xs">Select a project.</p>
+									) : isAgentsLoading ? (
+										<p className="text-gray-400 italic text-xs">Loading...</p>
+									) : agents.length === 0 ? (
 										<p className="text-gray-400 italic text-xs">No agents found.</p>
+									) : (
+										agents.filter(a => a.name).map(a => (
+											<button
+												key={a.id || a.name}
+												onClick={() => setSelectedAgent(a)}
+												className={`w-full text-left rounded-lg px-3 py-1.5 text-xs font-semibold border transition
+													${selectedAgent?.id === a.id
+														? 'bg-purple-600 text-white border-purple-600 shadow'
+														: 'bg-white text-purple-800 border-purple-100 hover:bg-purple-50 shadow-sm'
+													}`}
+											>
+												{a.name}
+											</button>
+										))
 									)}
 								</div>
 							</div>

@@ -1,8 +1,8 @@
 // ProjectsApi.js
 // Fetches projects for a given foundry and subscription
 
-export async function fetchProjects(accessToken, foundryName, subscriptionId) {
-  const url = `/api/projects?foundryName=${encodeURIComponent(foundryName)}&subscriptionId=${encodeURIComponent(subscriptionId)}`;
+export async function fetchProjects(accessToken, foundryName, subscriptionId, resourceGroup) {
+  const url = `/api/projects/?foundryName=${encodeURIComponent(foundryName)}&subscriptionId=${encodeURIComponent(subscriptionId)}&resourceGroup=${encodeURIComponent(resourceGroup || '')}`;
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,

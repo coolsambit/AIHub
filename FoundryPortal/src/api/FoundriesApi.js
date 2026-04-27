@@ -6,7 +6,7 @@ export async function fetchFoundries(accessToken, subscriptionId, userId) {
 		cleanSubscriptionId = cleanSubscriptionId.replace('/subscriptions/', '');
 	}
 	// ...existing code...
-	const url = `/api/foundries?subscriptionId=${encodeURIComponent(cleanSubscriptionId)}&userId=${encodeURIComponent(userId)}`;
+	const url = `/api/foundries/?userId=${encodeURIComponent(userId)}&subscriptionId=${encodeURIComponent(cleanSubscriptionId)}`;
 	const response = await fetch(url, {
 		headers: {
 			Authorization: `Bearer ${accessToken}`,

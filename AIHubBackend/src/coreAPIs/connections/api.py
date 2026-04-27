@@ -7,6 +7,7 @@ router = APIRouter()
 
 # Example HTTP endpoint for listing connections
 @router.get("/", summary="List all connections")
+@router.get("", include_in_schema=False)
 def list_connections_sample():
     return [{"id": 1, "name": "Example Connection"}]
 

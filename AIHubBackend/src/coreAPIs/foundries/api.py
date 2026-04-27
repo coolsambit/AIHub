@@ -1,202 +1,97 @@
 
 from __future__ import annotations
-from fastapi import APIRouter, Request, Query
-from pydantic import BaseModel
-from azure.identity import DefaultAzureCredential
 
+import logging
+import requests
+from fastapi import APIRouter, Request, Query
+from azure.identity import DefaultAzureCredential
 
 router = APIRouter()
 __all__ = ["router"]
 
+_CS_API_VERSION = "2025-06-01"
 
-# List all foundries for the current user and subscription
-@router.get("/", summary="List all foundries for the current user and subscription")
+
+@router.get("/", summary="List all AIServices foundries in the selected subscription")
 @router.get("", include_in_schema=False)
 async def list_foundries(
     request: Request,
-    user_id: str = Query("", alias="userId", description="User ID (optional, for delegated scenarios)"),
-    subscription_id: str = Query(..., alias="subscriptionId", description="Azure Subscription ID")
+    subscription_id: str = Query(..., alias="subscriptionId", description="Azure Subscription ID"),
+    user_id: str = Query("", alias="userId", description="Ignored — auth comes from Bearer token"),
 ) -> list[dict]:
-    credential = DefaultAzureCredential()
-    # Import FoundriesAPI from this file, not as a circular import
-    api = FoundriesAPI([], credential)
-    return api.list_items(user_id, subscription_id)
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        token = auth_header.split(" ", 1)[1]
+    else:
+        try:
+            token = DefaultAzureCredential().get_token("https://management.azure.com/.default").token
+        except Exception as e:
+            logging.error(f"Azure credential error: {e}")
+            return [{"error": f"Azure credential error: {e}"}]
+
+    try:
+        return _list_aiservices_foundries(subscription_id, token)
+    except Exception as e:
+        logging.error(f"Foundries API error: {e}")
+        return [{"error": f"Foundries API error: {e}"}]
 
 
+def _list_aiservices_foundries(subscription_id: str, token: str) -> list[dict]:
+    """Fetch all AIServices accounts in the subscription via the CognitiveServices provider API."""
+    url: str | None = (
+        f"https://management.azure.com/subscriptions/{subscription_id}"
+        f"/providers/Microsoft.CognitiveServices/accounts?api-version={_CS_API_VERSION}"
+    )
+    headers = {"Authorization": f"Bearer {token}"}
+    results: list[dict] = []
+
+    while url:
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        payload = response.json()
+
+        for account in payload.get("value", []):
+            if str(account.get("kind", "")).lower() != "aiservices":
+                continue
+
+            resource_group = _extract_resource_group(account.get("id", ""))
+            props = account.get("properties") or {}
+            endpoint = props.get("endpoint") or _endpoint_fallback(account)
+            location = str(account.get("location") or "").strip()
+
+            results.append({
+                "name": account.get("name", ""),
+                "endpoint": endpoint,
+                "subscription_id": subscription_id,
+                "location": location,
+                "kind": account.get("kind", ""),
+                "resource_group": resource_group,
+                "resource_group_region": location,
+            })
+
+        url = payload.get("nextLink")
+
+    return results
 
 
+def _extract_resource_group(arm_id: str) -> str | None:
+    parts = arm_id.split("/")
+    if "resourceGroups" in parts:
+        idx = parts.index("resourceGroups")
+        if idx + 1 < len(parts):
+            return parts[idx + 1]
+    return None
 
 
+def _endpoint_fallback(account: dict) -> str | None:
+    name = str(account.get("name") or "").strip().lower()
+    return f"https://{name}.cognitiveservices.azure.com/" if name else None
 
 
-
-
-
-from dataclasses import dataclass
-from typing import Any, Protocol
-
-import requests
-from azure.identity import DefaultAzureCredential
-
-from coreAPIs.projects.api import ProjectsAPI
-
-
-class FoundryConfigLike(Protocol):
-    """Minimal shape required for configured foundry entries."""
-
-    name: str
-    endpoint: str
-    subscription_id: str | None
-    resource_group: str | None
-    resource_group_region: str | None
-
-
-@dataclass
-class DiscoveredFoundry:
-    """Foundry-like Azure AIServices account discovered from ARM."""
-
-    name: str
-    endpoint: str | None
-    subscription_id: str | None
-    location: str | None
-    kind: str | None
-    resource_group: str | None = None
-    resource_group_region: str | None = None
-
-
+# Thin compatibility shim — kept so package-level imports don't break
 class FoundriesAPI:
-    """Applies subscription and access checks to configured foundry projects."""
-    def __init__(self, projects: list[FoundryConfigLike], credential: DefaultAzureCredential) -> None:
-        self.projects = projects
-        self.credential = credential
+    def __init__(self, *args, **kwargs):
+        pass
 
-    def list(self, user_id: str, subscription_id: str) -> list[FoundryConfigLike]:
-        """Return configured foundry entries visible for the current subscription context."""
-        if not subscription_id:
-            return []
-
-        available: list[FoundryConfigLike] = []
-
-        for project in self.projects:
-            project_subscription_id = getattr(project, "subscription_id", None)
-            if project_subscription_id and project_subscription_id != subscription_id:
-                continue
-
-            try:
-                # Listing projects validates the current principal can access this foundry endpoint.
-                ProjectsAPI(project.endpoint, self.credential).list()
-                available.append(project)
-            except Exception:
-                continue
-
-        return available
-
-    def _discover_foundries(self, subscription_id: str) -> list[DiscoveredFoundry]:
-        """Discover AIServices resources in the selected subscription.
-
-        This aligns the portal dropdown with Azure Portal behavior where users
-        expect all Foundry-capable resources in the subscription, regardless of
-        region, to appear in a single list.
-        """
-        if not subscription_id:
-            return []
-
-        token = self.credential.get_token("https://management.azure.com/.default")
-        url = (
-            f"https://management.azure.com/subscriptions/{subscription_id}/resources"
-            "?api-version=2021-04-01"
-            "&$filter=resourceType eq 'Microsoft.CognitiveServices/accounts'"
-        )
-        headers = {"Authorization": f"Bearer {token.token}"}
-
-        items: list[DiscoveredFoundry] = []
-        next_url: str | None = url
-        while next_url:
-            response = requests.get(next_url, headers=headers, timeout=30)
-            response.raise_for_status()
-            payload = response.json() if response.content else {}
-            rows = payload.get("value", []) if isinstance(payload, dict) else []
-
-            for row in rows:
-                if not isinstance(row, dict):
-                    continue
-
-                kind = str(row.get("kind") or "").strip()
-                if kind.lower() != "aiservices":
-                    continue
-
-                properties = row.get("properties") if isinstance(row.get("properties"), dict) else {}
-                endpoint = properties.get("endpoint")
-                if not endpoint:
-                    custom_domain = str(properties.get("customSubDomainName") or "").strip()
-                    if custom_domain:
-                        endpoint = f"https://{custom_domain}.services.ai.azure.com"
-
-                if not endpoint:
-                    account_name = str(row.get("name") or "").strip()
-                    if account_name:
-                        endpoint = f"https://{account_name}.services.ai.azure.com"
-
-                # Extract resource group and region from ARM id and location
-                arm_id = row.get("id")
-                resource_group = None
-                if isinstance(arm_id, str):
-                    # ARM id format: /subscriptions/{sub}/resourceGroups/{rg}/providers/...
-                    parts = arm_id.split("/")
-                    if "resourceGroups" in parts:
-                        idx = parts.index("resourceGroups")
-                        if idx + 1 < len(parts):
-                            resource_group = parts[idx + 1]
-
-                # Fetch the actual resource group region using Azure SDK
-                from .azure_utils import get_resource_group_region
-                resource_group_region = None
-                if resource_group:
-                    resource_group_region = get_resource_group_region(subscription_id, resource_group)
-                if not resource_group_region:
-                    resource_group_region = str(row.get("location") or "").strip() or None
-
-                items.append(
-                    DiscoveredFoundry(
-                        name=str(row.get("name") or "").strip() or "unknown-foundry",
-                        endpoint=endpoint,
-                        subscription_id=subscription_id,
-                        location=str(row.get("location") or "").strip() or None,
-                        kind=kind,
-                        resource_group=resource_group,
-                        resource_group_region=resource_group_region,
-                    )
-                )
-
-            next_url = payload.get("nextLink") if isinstance(payload, dict) else None
-
-        return items
-
-    def list_items(self, user_id: str, subscription_id: str) -> list[dict[str, str | None]]:
-        """Return a UI-ready list payload for foundry selectors, including resource group and region."""
-        configured = self.list(user_id, subscription_id)
-        if configured:
-            return [
-                {
-                    "name": project.name,
-                    "endpoint": project.endpoint,
-                    "subscription_id": project.subscription_id,
-                    "resource_group": getattr(project, "resource_group", None),
-                    "resource_group_region": getattr(project, "resource_group_region", None),
-                }
-                for project in configured
-            ]
-
-        discovered = self._discover_foundries(subscription_id)
-        return [
-            {
-                "name": item.name,
-                "endpoint": item.endpoint,
-                "subscription_id": item.subscription_id,
-                "location": item.location,
-                "kind": item.kind,
-                "resource_group": getattr(item, "resource_group", None) or None,
-                "resource_group_region": getattr(item, "resource_group_region", None) or None,
-            }
-            for item in discovered
-        ]
+    def list_items(self, subscription_id: str, token: str) -> list[dict]:
+        return _list_aiservices_foundries(subscription_id, token)

@@ -5,7 +5,7 @@ export async function fetchModels(accessToken, subscriptionId, resourceGroupName
   if (typeof cleanSubscriptionId === 'string' && cleanSubscriptionId.startsWith('/subscriptions/')) {
     cleanSubscriptionId = cleanSubscriptionId.replace('/subscriptions/', '');
   }
-  const url = `/api/models?subscriptionId=${encodeURIComponent(cleanSubscriptionId)}&resourceGroupName=${encodeURIComponent(resourceGroupName)}&accountName=${encodeURIComponent(accountName)}&api-version=${encodeURIComponent(apiVersion)}`;
+  const url = `/api/models/?subscriptionId=${encodeURIComponent(cleanSubscriptionId)}&resourceGroupName=${encodeURIComponent(resourceGroupName)}&accountName=${encodeURIComponent(accountName)}&api-version=${encodeURIComponent(apiVersion)}`;
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,

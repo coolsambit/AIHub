@@ -11,7 +11,7 @@ from coreAPIs.keys.api import router as keys_router
 from coreAPIs.Roles.api import router as cs_openai_roles_router
 
 
-app = FastAPI(title="Core APIs Service", version="1.0.0")
+app = FastAPI(title="Core APIs Service", version="1.0.0", redirect_slashes=False)
 
 # Add CORS middleware to allow frontend-backend communication
 app.add_middleware(

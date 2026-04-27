@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import requests
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request, HTTPException
 from fastapi.responses import JSONResponse
 from azure.identity import DefaultAzureCredential
 
@@ -10,7 +10,9 @@ router = APIRouter()
 
 
 @router.get("/", summary="List API keys for a Cognitive Services / Foundry account")
+@router.get("", include_in_schema=False)
 async def list_keys(
+    request: Request,
     subscriptionId: str = Query(..., description="Azure Subscription ID"),
     resourceGroupName: str = Query(..., description="Resource Group Name"),
     accountName: str = Query(..., description="Cognitive Services account name (Foundry)"),
@@ -19,8 +21,11 @@ async def list_keys(
     if sub_id.startswith("/subscriptions/"):
         sub_id = sub_id[len("/subscriptions/"):]
 
-    credential = DefaultAzureCredential()
-    token = credential.get_token("https://management.azure.com/.default").token
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        token = auth_header.split(" ", 1)[1]
+    else:
+        token = DefaultAzureCredential().get_token("https://management.azure.com/.default").token
 
     url = (
         f"https://management.azure.com/subscriptions/{sub_id}"
