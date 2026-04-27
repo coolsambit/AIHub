@@ -32,11 +32,41 @@ const SubscriptionDashboard = ({
 				<WelcomeBanner title="" subtitle="">
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-left">
 
-						{/* Roles */}
+						{/* Azure Policy & Governance */}
+						<div className="bg-white border border-blue-100 rounded-lg p-3 shadow-sm flex flex-col gap-2">
+							<div className="flex items-center gap-2 mb-1">
+								<svg className="w-4 h-4 text-teal-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 9c0 5.591 3.824 10.29 9 11.622C17.176 19.29 21 14.591 21 9c0-1.005-.07-1.99-.218-2.957z"/></svg>
+								<p className="text-xs font-bold text-blue-900">Azure Policy &amp; Governance</p>
+							</div>
+							<p className="text-xs text-gray-600">Azure Policy defines, assigns, and audits rules across resources to enforce organisational standards. Policies can restrict allowed SKUs, require tags, enforce network rules, and ensure compliance at scale.</p>
+							<a href="https://learn.microsoft.com/en-us/azure/governance/policy/overview" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more →</a>
+						</div>
+
+						{/* VNet Integration */}
+						<div className="bg-white border border-blue-100 rounded-lg p-3 shadow-sm flex flex-col gap-2">
+							<div className="flex items-center gap-2 mb-1">
+								<svg className="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="2" y="7" width="6" height="4" rx="1"/><rect x="16" y="7" width="6" height="4" rx="1"/><rect x="9" y="14" width="6" height="4" rx="1"/><path strokeLinecap="round" strokeLinejoin="round" d="M5 11v2h14v-2M12 14v-1"/></svg>
+								<p className="text-xs font-bold text-blue-900">VNet Integration</p>
+							</div>
+							<p className="text-xs text-gray-600">Azure AI Foundry supports Virtual Network integration to keep all traffic within your private network. Configure private endpoints and outbound rules to prevent public internet exposure.</p>
+							<a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/configure-private-link" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more →</a>
+						</div>
+
+						{/* Permissions (RBAC) */}
+						<div className="bg-white border border-blue-100 rounded-lg p-3 shadow-sm flex flex-col gap-2">
+							<div className="flex items-center gap-2 mb-1">
+								<svg className="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m9-5a4 4 0 1 0-8 0 4 4 0 0 0 8 0z"/></svg>
+								<p className="text-xs font-bold text-blue-900">Permissions (RBAC)</p>
+							</div>
+							<p className="text-xs text-gray-600">Permissions are assigned at subscription, resource group, or resource scope and inherit downward. Use least-privilege — grant only the access required for the task at hand.</p>
+							<a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/overview" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more →</a>
+						</div>
+
+						{/* AI Roles */}
 						<div className="bg-white border border-blue-100 rounded-lg p-3 shadow-sm flex flex-col gap-2">
 							<div className="flex items-center gap-2 mb-1">
 								<svg className="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 9c0 5.591 3.824 10.29 9 11.622C17.176 19.29 21 14.591 21 9c0-1.005-.07-1.99-.218-2.957z"/></svg>
-								<p className="text-xs font-bold text-blue-900">Roles</p>
+								<p className="text-xs font-bold text-blue-900">AI Roles</p>
 							</div>
 							<div className="flex flex-col gap-1.5">
 								<div>
@@ -53,36 +83,6 @@ const SubscriptionDashboard = ({
 								</div>
 							</div>
 							<a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-ai-foundry" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more →</a>
-						</div>
-
-						{/* VNet Integration */}
-						<div className="bg-white border border-blue-100 rounded-lg p-3 shadow-sm flex flex-col gap-2">
-							<div className="flex items-center gap-2 mb-1">
-								<svg className="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="2" y="7" width="6" height="4" rx="1"/><rect x="16" y="7" width="6" height="4" rx="1"/><rect x="9" y="14" width="6" height="4" rx="1"/><path strokeLinecap="round" strokeLinejoin="round" d="M5 11v2h14v-2M12 14v-1"/></svg>
-								<p className="text-xs font-bold text-blue-900">VNet Integration</p>
-							</div>
-							<p className="text-xs text-gray-600">Azure AI Foundry supports Virtual Network integration to keep all traffic within your private network. Configure private endpoints and outbound rules to prevent public internet exposure.</p>
-							<a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/configure-private-link" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more →</a>
-						</div>
-
-						{/* Permissions */}
-						<div className="bg-white border border-blue-100 rounded-lg p-3 shadow-sm flex flex-col gap-2">
-							<div className="flex items-center gap-2 mb-1">
-								<svg className="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m9-5a4 4 0 1 0-8 0 4 4 0 0 0 8 0z"/></svg>
-								<p className="text-xs font-bold text-blue-900">Permissions</p>
-							</div>
-							<p className="text-xs text-gray-600">Permissions are assigned at subscription, resource group, or resource scope and inherit downward. Use least-privilege — grant only the access required for the task at hand.</p>
-							<a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/overview" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more →</a>
-						</div>
-
-						{/* Azure Policy & Governance */}
-						<div className="bg-white border border-blue-100 rounded-lg p-3 shadow-sm flex flex-col gap-2">
-							<div className="flex items-center gap-2 mb-1">
-								<svg className="w-4 h-4 text-teal-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 9c0 5.591 3.824 10.29 9 11.622C17.176 19.29 21 14.591 21 9c0-1.005-.07-1.99-.218-2.957z"/></svg>
-								<p className="text-xs font-bold text-blue-900">Azure Policy & Governance</p>
-							</div>
-							<p className="text-xs text-gray-600">Azure Policy defines, assigns, and audits rules across resources to enforce organisational standards. Policies can restrict allowed SKUs, require tags, enforce network rules, and ensure compliance at scale.</p>
-							<a href="https://learn.microsoft.com/en-us/azure/governance/policy/overview" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more →</a>
 						</div>
 
 					</div>
