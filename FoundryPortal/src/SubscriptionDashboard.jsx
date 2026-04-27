@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import WelcomeBanner from "./WelcomeBanner";
-import ModelListItem from './features/subscriptions-auth/ModelListItem';
 import ModelDetails from './features/subscriptions-auth/ModelDetails';
+import AgentDetails from './features/subscriptions-auth/AgentDetails';
 
 const SubscriptionDashboard = ({
 	isAuthenticated,
@@ -12,8 +12,8 @@ const SubscriptionDashboard = ({
 	apiKey1, apiKey2,
 	error,
 }) => {
-	const [modalOpen, setModalOpen] = useState(false);
 	const [selectedModel, setSelectedModel] = useState(null);
+	const [selectedAgent, setSelectedAgent] = useState(null);
 
 	const locationMap = {
 		'Foundry North America': 'East US',
@@ -25,16 +25,6 @@ const SubscriptionDashboard = ({
 	const displayProjectEndpoint = selectedFoundryData?.endpoint || '';
 	const displayResourceGroup = selectedFoundryData?.resource_group || '';
 	const displayResourceGroupRegion = selectedFoundryData?.resource_group_region || '';
-
-	const handleModelClick = (model) => {
-		setSelectedModel(model);
-		setModalOpen(true);
-	};
-
-	const handleCloseModal = () => {
-		setModalOpen(false);
-		setSelectedModel(null);
-	};
 
 	return (
 		<>
@@ -160,32 +150,15 @@ const SubscriptionDashboard = ({
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">Location</label>
-							<input
-								type="text"
-								value={displayLocation}
-								readOnly
-								className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
-							/>
+							<input type="text" value={displayLocation} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
 						</div>
-
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">Resource Group</label>
-							<input
-								type="text"
-								value={displayResourceGroup}
-								readOnly
-								className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
-							/>
+							<input type="text" value={displayResourceGroup} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
 						</div>
-
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">Resource Group Region</label>
-							<input
-								type="text"
-								value={displayResourceGroupRegion}
-								readOnly
-								className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
-							/>
+							<input type="text" value={displayResourceGroupRegion} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
 						</div>
 					</div>
 
@@ -193,30 +166,14 @@ const SubscriptionDashboard = ({
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">Foundry Endpoint</label>
-							<input
-								type="text"
-								value={displayProjectEndpoint}
-								readOnly
-								className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
-							/>
+							<input type="text" value={displayProjectEndpoint} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
 						</div>
 
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">API Key 1</label>
 							<div className="flex items-center gap-2">
-								<input
-									type="password"
-									value={apiKey1}
-									readOnly
-									placeholder={selectedFoundry ? '—' : ''}
-									className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
-								/>
-								<button
-									onClick={() => navigator.clipboard.writeText(apiKey1)}
-									disabled={!apiKey1}
-									title="Copy API Key 1"
-									className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-								>
+								<input type="password" value={apiKey1} readOnly placeholder={selectedFoundry ? '—' : ''} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+								<button onClick={() => navigator.clipboard.writeText(apiKey1)} disabled={!apiKey1} title="Copy API Key 1" className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
 									<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
 								</button>
 							</div>
@@ -225,19 +182,8 @@ const SubscriptionDashboard = ({
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">API Key 2</label>
 							<div className="flex items-center gap-2">
-								<input
-									type="password"
-									value={apiKey2}
-									readOnly
-									placeholder={selectedFoundry ? '—' : ''}
-									className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700"
-								/>
-								<button
-									onClick={() => navigator.clipboard.writeText(apiKey2)}
-									disabled={!apiKey2}
-									title="Copy API Key 2"
-									className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-								>
+								<input type="password" value={apiKey2} readOnly placeholder={selectedFoundry ? '—' : ''} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+								<button onClick={() => navigator.clipboard.writeText(apiKey2)} disabled={!apiKey2} title="Copy API Key 2" className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
 									<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
 								</button>
 							</div>
@@ -245,91 +191,107 @@ const SubscriptionDashboard = ({
 					</div>
 				</div>
 
-				{/* Dashboard Grid */}
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
-					<div className="flex flex-col gap-8">
-						{/* Model Information Panel */}
-						<div className="bg-gradient-to-br from-white via-blue-50 to-blue-100 p-8 rounded-2xl shadow-lg border border-blue-200">
-							<h3 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
-								<svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 20.5C6.201 20.5 1 15.299 1 9.5S6.201-1.5 12-1.5 23 4.701 23 10.5 17.799 20.5 12 20.5z" /></svg>
-								Model Information
-							</h3>
-							<div className="mb-8">
-								<h4 className="text-lg font-semibold text-blue-700 mb-2">Pooled Model</h4>
-								<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+				{/* Dashboard Grid — 2×2 */}
+				<div className="grid grid-cols-2 gap-6 mt-2">
+
+					{/* Model Information Panel */}
+					<div className="bg-gradient-to-br from-white via-blue-50 to-blue-100 p-6 rounded-2xl shadow-lg border border-blue-200">
+						<h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+							<svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 20.5C6.201 20.5 1 15.299 1 9.5S6.201-1.5 12-1.5 23 4.701 23 10.5 17.799 20.5 12 20.5z" /></svg>
+							Model Information
+						</h3>
+
+						<div className="flex gap-4 min-h-48">
+							{/* Pooled Models — 20% */}
+							<div className="w-1/5 shrink-0 flex flex-col">
+								<h4 className="text-sm font-semibold text-blue-700 mb-2">Pooled Models</h4>
+								<div className="flex flex-col gap-2">
 									{!selectedFoundry ? (
-										<div className="col-span-full text-gray-400 italic">Select a foundry to view models.</div>
+										<p className="text-gray-400 italic text-xs">Select a foundry.</p>
 									) : isModelsLoading ? (
-										<div className="col-span-full text-gray-400 italic">Loading models...</div>
+										<p className="text-gray-400 italic text-xs">Loading...</p>
 									) : models.length === 0 ? (
-										<div className="col-span-full text-gray-400 italic">No models found.</div>
+										<p className="text-gray-400 italic text-xs">No models found.</p>
 									) : (
-										models.map(model => (
-											<ModelListItem key={model.id} model={model} onClick={() => handleModelClick(model)} />
+										models.filter(model => model.name).map(model => (
+											<button
+												key={model.id}
+												onClick={() => setSelectedModel(model)}
+												className={`w-full text-left rounded-lg px-3 py-1.5 text-xs font-semibold border transition
+													${selectedModel?.id === model.id
+														? 'bg-blue-600 text-white border-blue-600 shadow'
+														: 'bg-white text-blue-800 border-blue-100 hover:bg-blue-50 shadow-sm'
+													}`}
+											>
+												{model.name}
+											</button>
 										))
 									)}
 								</div>
 							</div>
-						</div>
 
-						{/* Tools Panel */}
-						<div className="bg-gradient-to-br from-white via-yellow-50 to-yellow-100 p-8 rounded-2xl shadow-lg border border-yellow-200">
-							<h3 className="text-xl font-bold text-yellow-900 mb-4 flex items-center gap-2">
-								<svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/><path strokeLinecap="round" strokeLinejoin="round" d="M9 9h6v6H9z" /></svg>
-								Tools
-							</h3>
-							<div className="mb-8">
-								<div className="col-span-full h-16"></div>
+							{/* Divider */}
+							<div className="w-px bg-blue-200 shrink-0" />
+
+							{/* Details — 80% */}
+							<div className="flex-1 min-w-0">
+								<h4 className="text-sm font-semibold text-blue-700 mb-3">Details</h4>
+								<ModelDetails model={selectedModel} />
 							</div>
 						</div>
 					</div>
 
-					<div className="flex flex-col gap-8">
-						{/* Agents Available Panel */}
-						<div className="bg-gradient-to-br from-white via-green-50 to-green-100 p-8 rounded-2xl shadow-lg border border-green-200">
-							<h3 className="text-xl font-bold text-green-900 mb-4 flex items-center gap-2">
-								<svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none"/><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /></svg>
-								Agents Available
-							</h3>
-							<div className="mb-8">
-								<div className="col-span-full h-16"></div>
-							</div>
-						</div>
+					{/* Agent Information Panel */}
+					<div className="bg-gradient-to-br from-white via-purple-50 to-purple-100 p-6 rounded-2xl shadow-lg border border-purple-200">
+						<h3 className="text-lg font-bold text-purple-900 mb-4 flex items-center gap-2">
+							<svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+							Agent Information
+						</h3>
 
-						{/* Foundry Connections Panel */}
-						<div className="bg-gradient-to-br from-white via-purple-50 to-purple-100 p-8 rounded-2xl shadow-lg border border-purple-200">
-							<h3 className="text-xl font-bold text-purple-900 mb-4 flex items-center gap-2">
-								<svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m9-5a4 4 0 1 0-8 0 4 4 0 0 0 8 0zm-4 4v4" /></svg>
-								Foundry Connections
-							</h3>
-							<div className="mb-8">
-								<div className="col-span-full h-16"></div>
+						<div className="flex gap-4 min-h-48">
+							{/* Agent List — 20% */}
+							<div className="w-1/5 shrink-0 flex flex-col">
+								<h4 className="text-sm font-semibold text-purple-700 mb-2">Agents</h4>
+								<div className="flex flex-col gap-2">
+									{!selectedFoundry ? (
+										<p className="text-gray-400 italic text-xs">Select a foundry.</p>
+									) : (
+										<p className="text-gray-400 italic text-xs">No agents found.</p>
+									)}
+								</div>
+							</div>
+
+							{/* Divider */}
+							<div className="w-px bg-purple-200 shrink-0" />
+
+							{/* Details — 80% */}
+							<div className="flex-1 min-w-0">
+								<h4 className="text-sm font-semibold text-purple-700 mb-3">Details</h4>
+								<AgentDetails agent={selectedAgent} />
 							</div>
 						</div>
 					</div>
+
+					{/* Tools Panel */}
+					<div className="bg-gradient-to-br from-white via-yellow-50 to-yellow-100 p-6 rounded-2xl shadow-lg border border-yellow-200">
+						<h3 className="text-lg font-bold text-yellow-900 mb-4 flex items-center gap-2">
+							<svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/><path strokeLinecap="round" strokeLinejoin="round" d="M9 9h6v6H9z" /></svg>
+							Tools
+						</h3>
+						<div className="h-16" />
+					</div>
+
+					{/* Connections Panel */}
+					<div className="bg-gradient-to-br from-white via-teal-50 to-teal-100 p-6 rounded-2xl shadow-lg border border-teal-200">
+						<h3 className="text-lg font-bold text-teal-900 mb-4 flex items-center gap-2">
+							<svg className="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+							Connections
+						</h3>
+						<div className="h-16" />
+					</div>
+
 				</div>
 			</div>
-
-			{/* Modal for Model Details */}
-			{modalOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" onClick={handleCloseModal}>
-					<div className="relative bg-white rounded-xl shadow-lg w-full max-w-lg mx-4 sm:mx-auto flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-						<div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-gray-100 shrink-0">
-							<h3 className="text-lg font-semibold text-gray-900">Model Details</h3>
-							<button
-								className="text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none leading-none"
-								onClick={handleCloseModal}
-								aria-label="Close"
-							>
-								&times;
-							</button>
-						</div>
-						<div className="overflow-y-auto flex-1">
-							<ModelDetails model={selectedModel} onBack={handleCloseModal} />
-						</div>
-					</div>
-				</div>
-			)}
 		</>
 	);
 };
