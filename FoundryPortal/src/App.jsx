@@ -189,13 +189,16 @@ function App() {
 	// 5. Load Agents when project changes
 	useEffect(() => {
 		const foundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
-		if (selectedProject && foundryData?.endpoint) {
+		const projectData = projects.find(p => (p.id || p.name) === selectedProject);
+		const projectName = projectData?.name || selectedProject;
+
+		if (selectedProject && foundryData?.resource_group) {
 			setIsAgentsLoading(true);
 			setAgents([]);
 			setInventoryError(null);
 			getAccessToken().then(token => {
 				if (!token) { setIsAgentsLoading(false); return; }
-				fetchAgents(token, foundryData.endpoint)
+				fetchAgents(token, selectedSubscription, foundryData.resource_group, selectedFoundry, projectName)
 					.then(data => setAgents(Array.isArray(data) ? data : []))
 					.catch(err => setInventoryError(err.message))
 					.finally(() => setIsAgentsLoading(false));
@@ -203,7 +206,7 @@ function App() {
 		} else {
 			setAgents([]);
 		}
-	}, [selectedProject, selectedFoundry, foundries]);
+	}, [selectedProject, selectedFoundry, foundries, projects]);
 
 	// 6. Load API Keys — also exposed as retryKeys for manual retry
 	const loadKeys = (foundryName, subId, foundryList) => {

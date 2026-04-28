@@ -55,8 +55,10 @@ def list_projects(
             if not isinstance(item, dict):
                 continue
             props = item.get("properties") or {}
+            raw_name = item.get("name", "")
+            name = raw_name.split("/")[-1] if "/" in raw_name else raw_name
             rows.append(ProjectOut(
-                name=item.get("name", ""),
+                name=name,
                 id=item.get("id", ""),
                 status=props.get("provisioningState") or props.get("status") or "unknown",
             ))

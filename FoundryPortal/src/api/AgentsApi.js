@@ -1,5 +1,5 @@
-export async function fetchAgents(accessToken, foundryEndpoint) {
-  const url = `/api/agents/unpublished?foundryEndpoint=${encodeURIComponent(foundryEndpoint)}`;
+export async function fetchAgents(accessToken, subscriptionId, resourceGroup, foundryName, projectName) {
+  const url = `/api/agents/?subscriptionId=${encodeURIComponent(subscriptionId)}&resourceGroup=${encodeURIComponent(resourceGroup)}&foundryName=${encodeURIComponent(foundryName)}&projectName=${encodeURIComponent(projectName)}`;
   const response = await fetch(url, {
     method: 'GET',
     headers: {
