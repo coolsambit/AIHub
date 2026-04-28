@@ -1,0 +1,71 @@
+trigger:
+- master
+- Dev
+
+variables:
+  azureSubscription: '23283c17-886c-46a1-9c2c-04cc78f2f386'
+  functionAppName: 'AIHubBackend'
+  vmImageName: 'ubuntu-latest'
+  workingDirectory: 'AIHubBackend'
+
+stages:
+- stage: Build
+  displayName: Build stage
+
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+
+    steps:
+    - task: UsePythonVersion@0
+      displayName: 'Use Python 3.11'
+      inputs:
+        versionSpec: 3.11
+
+    - bash: |
+        python -m venv antenv
+        source antenv/bin/activate
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt --target="./.python_packages/lib/site-packages"
+      workingDirectory: $(workingDirectory)
+      displayName: 'Install application dependencies'
+
+    - task: ArchiveFiles@2
+      displayName: 'Archive files'
+      inputs:
+        rootFolderOrFile: '$(workingDirectory)'
+        includeRootFolder: false
+        archiveType: zip
+        archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        replaceExistingArchive: true
+
+    - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      artifact: drop
+
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+  condition: succeeded()
+
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    environment: 'development'
+    pool:
+      vmImage: $(vmImageName)
+
+    strategy:
+      runOnce:
+        deploy:
+
+          steps:
+          - task: AzureFunctionApp@2
+            displayName: 'Azure Functions App deploy'
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appType: functionAppLinux
+              appName: $(functionAppName)
+              package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
+              runtimeStack: 'PYTHON|3.11'
