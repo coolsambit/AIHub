@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import requests
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import logging
 from fastapi import APIRouter, Request
 from azure.identity import DefaultAzureCredential
+from coreAPIs.arm_client import arm_get
 
 __all__ = ["router"]
 router = APIRouter()
@@ -82,22 +82,17 @@ class SubscriptionsAPI:
             else:
                 return []
 
-            headers = {"Authorization": f"Bearer {token_value}", "Content-Type": "application/json"}
-
-            subs_resp = requests.get(
+            subs_resp = arm_get(
                 "https://management.azure.com/subscriptions?api-version=2020-01-01",
-                headers=headers,
-                timeout=30,
+                token_value,
             )
             if not subs_resp.ok:
+                logging.error(f"ARM subscriptions returned {subs_resp.status_code}: {subs_resp.text[:400]}")
                 return []
             all_subs = subs_resp.json().get("value", [])
-            if not all_subs:
-                return []
-
-            # Return all subscriptions the user has access to (no AI permission filtering)
             return all_subs
-        except Exception:
+        except Exception as e:
+            logging.error(f"Subscriptions API error: {e}")
             return []
 
 

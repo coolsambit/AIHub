@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import WelcomeBanner from "./WelcomeBanner";
 import ModelDetails from './features/subscriptions-auth/ModelDetails';
 import AgentDetails from './features/subscriptions-auth/AgentDetails';
+import FoundrySnowflakeSpinner from './FoundrySnowflakeSpinner';
 
 const SubscriptionDashboard = ({
 	isAuthenticated,
@@ -10,7 +11,7 @@ const SubscriptionDashboard = ({
 	projects, selectedProject, setSelectedProject, isProjectsLoading,
 	models, isModelsLoading,
 	agents, isAgentsLoading,
-	apiKey1, apiKey2,
+	apiKey1, apiKey2, isKeysLoading, keysError, retryKeys,
 	error,
 }) => {
 	const [selectedModel, setSelectedModel] = useState(null);
@@ -102,10 +103,13 @@ const SubscriptionDashboard = ({
 					{/* Row 1: Dropdowns */}
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						<div className="space-y-2">
-							<label className="block text-sm font-semibold text-gray-700">Subscription</label>
-							{!isLoading && isAuthenticated && subscriptions.length === 0 ? (
+							<label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+								Subscription
+								<FoundrySnowflakeSpinner size={16} spinning={isLoading} />
+							</label>
+							{!isLoading && isAuthenticated && subscriptions.length === 0 && !error ? (
 								<div className="bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg px-4 py-2.5 text-sm">
-									No AI-enabled subscriptions found. Please contact your Admin to get a Cognitive Services or Azure AI role assigned.
+									No subscriptions found. Ensure you are signed in with the correct account.
 								</div>
 							) : (
 								<select
@@ -115,39 +119,45 @@ const SubscriptionDashboard = ({
 									className={`w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${!isAuthenticated ? 'bg-gray-100 text-gray-700' : 'bg-white'} disabled:bg-gray-100`}
 								>
 									<option value="">{isLoading ? 'Loading...' : 'Select a Subscription...'}</option>
-									{subscriptions.map(sub => (
-										<option key={sub.id} value={sub.id}>{sub.name}</option>
+									{subscriptions.map((sub, i) => (
+										<option key={sub.id || i} value={sub.id}>{sub.name}</option>
 									))}
 								</select>
 							)}
 						</div>
 
 						<div className="space-y-2">
-							<label className="block text-sm font-semibold text-gray-700">Foundry</label>
+							<label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+								Foundry
+								<FoundrySnowflakeSpinner size={16} spinning={isFoundriesLoading} />
+							</label>
 							<select
 								value={selectedFoundry}
 								onChange={(e) => setSelectedFoundry(e.target.value)}
 								disabled={!selectedSubscription || isFoundriesLoading}
 								className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white disabled:bg-gray-50"
 							>
-								<option value="">{isFoundriesLoading ? 'Loading foundries...' : 'Select a Foundry...'}</option>
-								{foundries.map(f => (
-									<option key={f.name} value={f.name}>{f.name}</option>
+								<option value="">{isFoundriesLoading ? 'Loading foundries...' : foundries.length === 0 && selectedSubscription ? 'No Foundry to select.' : 'Select a Foundry...'}</option>
+								{foundries.map((f, i) => (
+									<option key={f.name || i} value={f.name}>{f.name}</option>
 								))}
 							</select>
 						</div>
 
 						<div className="space-y-2">
-							<label className="block text-sm font-semibold text-gray-700">Project</label>
+							<label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+								Project
+								<FoundrySnowflakeSpinner size={16} spinning={isProjectsLoading} />
+							</label>
 							<select
 								value={selectedProject}
 								onChange={e => setSelectedProject(e.target.value)}
 								disabled={isProjectsLoading || !selectedFoundry}
 								className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white disabled:bg-gray-50"
 							>
-								<option value="">{isProjectsLoading ? 'Loading projects...' : 'Select a Project...'}</option>
-								{projects.map(p => (
-									<option key={p.id || p.name} value={p.id || p.name}>{p.name || p.id}</option>
+								<option value="">{isProjectsLoading ? 'Loading projects...' : projects.length === 0 && selectedFoundry ? 'No Project to select.' : 'Select a Project...'}</option>
+								{projects.map((p, i) => (
+									<option key={p.id || p.name || i} value={p.id || p.name}>{p.name || p.id}</option>
 								))}
 							</select>
 						</div>
@@ -177,23 +187,37 @@ const SubscriptionDashboard = ({
 						</div>
 
 						<div className="space-y-2">
-							<label className="block text-sm font-semibold text-gray-700">API Key 1</label>
-							<div className="flex items-center gap-2">
-								<input type="password" value={apiKey1} readOnly placeholder={selectedFoundry ? '—' : ''} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
-								<button onClick={() => navigator.clipboard.writeText(apiKey1)} disabled={!apiKey1} title="Copy API Key 1" className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
-									<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-								</button>
-							</div>
+							<label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+								API Key 1
+								<FoundrySnowflakeSpinner size={16} spinning={isKeysLoading} />
+							</label>
+							{keysError ? (
+								<div className="flex items-center gap-2">
+									<span className="text-xs text-red-600 flex-1 truncate" title={keysError}>Failed to load keys.</span>
+									<button onClick={retryKeys} className="shrink-0 text-xs px-2 py-1 rounded border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100">Retry</button>
+								</div>
+							) : (
+								<div className="flex items-center gap-2">
+									<input type="password" value={apiKey1} readOnly placeholder={selectedFoundry ? '—' : ''} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+									<button onClick={() => navigator.clipboard.writeText(apiKey1)} disabled={!apiKey1} title="Copy API Key 1" className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+										<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+									</button>
+								</div>
+							)}
 						</div>
 
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">API Key 2</label>
-							<div className="flex items-center gap-2">
-								<input type="password" value={apiKey2} readOnly placeholder={selectedFoundry ? '—' : ''} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
-								<button onClick={() => navigator.clipboard.writeText(apiKey2)} disabled={!apiKey2} title="Copy API Key 2" className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
-									<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-								</button>
-							</div>
+							{keysError ? (
+								<div className="text-xs text-gray-400 italic py-2.5">—</div>
+							) : (
+								<div className="flex items-center gap-2">
+									<input type="password" value={apiKey2} readOnly placeholder={selectedFoundry ? '—' : ''} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+									<button onClick={() => navigator.clipboard.writeText(apiKey2)} disabled={!apiKey2} title="Copy API Key 2" className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+										<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+									</button>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>

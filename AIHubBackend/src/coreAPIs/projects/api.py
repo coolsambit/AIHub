@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import List
 
-import requests
 from azure.identity import DefaultAzureCredential
 from fastapi import APIRouter, HTTPException, Query, Request
+from coreAPIs.arm_client import arm_get
 from pydantic import BaseModel
 
 __all__ = ["router"]
@@ -34,8 +34,6 @@ def list_projects(
 ) -> List[ProjectOut]:
     sub_id = subscriptionId.removeprefix("/subscriptions/").strip("/").split("/")[0]
 
-    headers = {"Authorization": f"Bearer {_token_from_request(request)}"}
-
     base = (
         f"https://management.azure.com/subscriptions/{sub_id}"
         f"/resourceGroups/{resourceGroup}/providers/Microsoft.CognitiveServices/accounts/{foundryName}"
@@ -44,8 +42,9 @@ def list_projects(
 
     rows: list[ProjectOut] = []
     next_url: str | None = base
+    token = _token_from_request(request)
     while next_url:
-        r = requests.get(next_url, headers=headers, timeout=30)
+        r = arm_get(next_url, token)
         if not r.ok:
             raise HTTPException(
                 status_code=r.status_code,

@@ -1,9 +1,10 @@
-import React from 'react';
 import './FoundrySnowflakeSpinner.css';
 
-const FoundrySnowflakeSpinner = () => (
-  <div className="foundry-snowflake-spinner" title="Loading...">
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+const FoundrySnowflakeSpinner = ({ size = 48, spinning = true }) => {
+  if (!spinning) return null;
+  return (
+  <div className="foundry-snowflake-spinner is-spinning" title="Loading…">
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g>
         <circle cx="24" cy="24" r="22" stroke="#0078D4" strokeWidth="4" opacity="0.15" />
         <g className="snowflake">
@@ -16,6 +17,7 @@ const FoundrySnowflakeSpinner = () => (
       </g>
     </svg>
   </div>
-);
+  );
+};
 
 export default FoundrySnowflakeSpinner;

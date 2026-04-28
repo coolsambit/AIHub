@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import logging
-import requests
 from fastapi import APIRouter, Request, Query
 from azure.identity import DefaultAzureCredential
+from coreAPIs.arm_client import arm_get
 
 router = APIRouter()
 __all__ = ["router"]
@@ -42,11 +42,10 @@ def _list_aiservices_foundries(subscription_id: str, token: str) -> list[dict]:
         f"https://management.azure.com/subscriptions/{subscription_id}"
         f"/providers/Microsoft.CognitiveServices/accounts?api-version={_CS_API_VERSION}"
     )
-    headers = {"Authorization": f"Bearer {token}"}
     results: list[dict] = []
 
     while url:
-        response = requests.get(url, headers=headers, timeout=30)
+        response = arm_get(url, token)
         response.raise_for_status()
         payload = response.json()
 

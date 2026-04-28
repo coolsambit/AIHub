@@ -1,14 +1,21 @@
 .foundry-snowflake-spinner {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   vertical-align: middle;
-  animation: none;
+  animation: snowflake-flicker 1.4s ease-in-out infinite;
 }
+
 .foundry-snowflake-spinner .snowflake {
   transform-origin: 24px 24px;
   animation: foundry-spin 1.2s linear infinite;
 }
+
 @keyframes foundry-spin {
-  100% {
-    transform: rotate(360deg);
-  }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes snowflake-flicker {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
 }

@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, Request, HTTPException
 from fastapi.responses import JSONResponse
-import requests
 from azure.identity import DefaultAzureCredential
+from coreAPIs.arm_client import arm_get
 
 __all__ = ["router"]
 
@@ -18,6 +18,7 @@ router = APIRouter()
 @router.get("/", summary="List all models (deployments)")
 @router.get("", summary="List all models (deployments)")
 def list_models(
+    request: Request,
     subscriptionId: str = Query(..., description="Azure Subscription ID"),
     resourceGroupName: str = Query(..., description="Azure Resource Group Name"),
     accountName: str = Query(..., description="Cognitive Services Account Name (Foundry resource)"),
@@ -39,17 +40,18 @@ def list_models(
     if sub_id.startswith("/subscriptions/"):
         sub_id = sub_id[len("/subscriptions/"):]
 
-    credential = DefaultAzureCredential()
-    token = credential.get_token("https://management.azure.com/.default")
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        token = auth_header.split(" ", 1)[1]
+    else:
+        token = DefaultAzureCredential().get_token("https://management.azure.com/.default").token
 
     url = (
         f"https://management.azure.com/subscriptions/{sub_id}/resourceGroups/{resourceGroupName}/"
         f"providers/Microsoft.CognitiveServices/accounts/{accountName}/deployments?api-version={api_version}"
     )
-    headers = {"Authorization": f"Bearer {token.token}"}
-
     try:
-        response = requests.get(url, headers=headers, timeout=30)
+        response = arm_get(url, token)
         response.raise_for_status()
         return JSONResponse(content=response.json())
     except Exception as e:

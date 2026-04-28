@@ -19,7 +19,7 @@ def list_unpublished_agents(
         raise HTTPException(status_code=500, detail=f"Failed to acquire token: {e}")
 
     url = f"{foundryEndpoint.rstrip('/')}/openai/assistants?api-version=2025-01-01-preview"
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {token}", "Connection": "close"}
 
     try:
         response = requests.get(url, headers=headers, timeout=30)

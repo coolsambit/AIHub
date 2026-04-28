@@ -11,8 +11,13 @@ export async function fetchFoundryKeys(accessToken, subscriptionId, resourceGrou
       'Content-Type': 'application/json',
     },
   });
-  const data = await response.json();
-  console.log('[fetchFoundryKeys] status:', response.status, 'data:', data);
-  if (!response.ok) throw new Error(data?.error || 'Failed to fetch API keys');
+  let data;
+  try {
+    data = await response.clone().json();
+    console.log('[fetchFoundryKeys] status:', response.status, 'data:', data);
+  } catch (e) {
+    data = null;
+  }
+  if (!response.ok) throw new Error(data?.error || `Keys request failed (HTTP ${response.status})`);
   return data;
 }
