@@ -245,47 +245,7 @@ export default function Home({ subscriptionRoles, cognitiveRoles, azureAiRoles }
           </div>
           {/* Model Hosting & Deployment Table - spans both columns */}
         </div>
-        <div className="col-span-1 md:col-span-2 lg:col-span-2 w-full mt-4">
-          <h4 className="text-base font-bold mb-2 text-blue-900">Model Hosting & Deployment</h4>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border border-blue-200 rounded-xl">
-              <thead>
-                <tr className="bg-blue-50">
-                  <th className="px-3 py-2 border-b text-left font-semibold">Model Type</th>
-                  <th className="px-3 py-2 border-b text-left font-semibold">Hosting/Deployment</th>
-                  <th className="px-3 py-2 border-b text-left font-semibold">Access Pattern</th>
-                  <th className="px-3 py-2 border-b text-left font-semibold">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="px-3 py-2 border-b">(1) MaaS (Model as a Service)</td>
-                  <td className="px-3 py-2 border-b">Hosted by provider (Azure, OpenAI, Foundry)</td>
-                  <td className="px-3 py-2 border-b">API endpoint, managed keys</td>
-                  <td className="px-3 py-2 border-b">No infra to manage; scalable; includes OpenAI Models</td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-2 border-b pl-6">OpenAI Models</td>
-                  <td className="px-3 py-2 border-b">Hosted by OpenAI or Azure</td>
-                  <td className="px-3 py-2 border-b">API endpoint, access via keys</td>
-                  <td className="px-3 py-2 border-b">Subset of MaaS; accessed via OpenAI/Azure OpenAI</td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-2 border-b">(2) Microsoft Foundry Models</td>
-                  <td className="px-3 py-2 border-b">Hosted in Microsoft Foundry</td>
-                  <td className="px-3 py-2 border-b">Foundry APIs, portal, or agent integration</td>
-                  <td className="px-3 py-2 border-b">Enterprise controls, agent orchestration</td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-2 border-b">(3) Marketplace Models</td>
-                  <td className="px-3 py-2 border-b">Provider-hosted (MaaS) or self-hosted (AKS, Function App, Container, etc.) or stored in private registry (e.g., JFrog)</td>
-                  <td className="px-3 py-2 border-b">API, direct deployment, or custom runtime</td>
-                  <td className="px-3 py-2 border-b">Flexible: can be integrated as MaaS or deployed in your org’s runtime</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        
       </div>
 
 
