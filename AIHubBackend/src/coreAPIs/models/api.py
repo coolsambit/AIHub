@@ -15,7 +15,7 @@ router = APIRouter()
 
 # Updated endpoint for listing models via Azure REST API
 
-@router.get("/", summary="List all models (deployments)")
+@router.get("/", include_in_schema=False)
 @router.get("", summary="List all models (deployments)")
 def list_models(
     request: Request,
