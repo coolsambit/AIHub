@@ -1,0 +1,46 @@
+name: Deploy React app to Azure App Service - FoundryDevPortal
+
+on:
+  push:
+    branches: ["master"]
+
+env:
+  AZURE_WEBAPP_NAME: 'FoundryDevPortal'
+  AZURE_WEBAPP_PACKAGE_PATH: 'FoundryPortal'
+  NODE_VERSION: '20.x'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v4
+
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_RBAC_CREDENTIALS_FUNCTIONAPP }}
+
+    - name: Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/package-lock.json'
+
+    - name: 'Install dependencies'
+      working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+      run: npm ci
+
+    - name: 'Build'
+      working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+      run: npm run build
+      env:
+        VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+
+    - name: 'Deploy to Azure App Service'
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/dist'
