@@ -39,6 +39,14 @@ jobs:
       env:
         VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
 
+    - name: 'Configure App Service startup'
+      run: |
+        az webapp config set \
+          --subscription "AIDataSense HUb" \
+          --resource-group AIHub \
+          --name ${{ env.AZURE_WEBAPP_NAME }} \
+          --startup-file "npx serve -s dist -l 8080"
+
     - name: 'Prepare deployment package'
       run: |
         cd ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
