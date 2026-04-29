@@ -22,14 +22,6 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_RBAC_CREDENTIALS_FUNCTIONAPP }}
 
-    - name: 'Ensure Python runtime on Function App'
-      run: |
-        az functionapp config appsettings set \
-          --subscription "AIDataSense HUb" \
-          --resource-group AIHub \
-          --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-          --settings FUNCTIONS_WORKER_RUNTIME=python PYTHON_VERSION=3.13
-
     - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
       uses: actions/setup-python@v5
       with:
