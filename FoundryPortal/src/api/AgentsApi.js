@@ -1,5 +1,7 @@
+import { apiUrl } from './config';
+
 export async function fetchAgents(accessToken, subscriptionId, resourceGroup, foundryName, projectName) {
-  const url = `/api/agents/?subscriptionId=${encodeURIComponent(subscriptionId)}&resourceGroup=${encodeURIComponent(resourceGroup)}&foundryName=${encodeURIComponent(foundryName)}&projectName=${encodeURIComponent(projectName)}`;
+  const url = apiUrl(`/api/agents/?subscriptionId=${encodeURIComponent(subscriptionId)}&resourceGroup=${encodeURIComponent(resourceGroup)}&foundryName=${encodeURIComponent(foundryName)}&projectName=${encodeURIComponent(projectName)}`);
   const response = await fetch(url, {
     method: 'GET',
     headers: {

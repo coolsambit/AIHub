@@ -1,8 +1,8 @@
 
-// Calls the backend API to get Azure subscriptions for the logged-in user
-export async function fetchSubscriptions(accessToken) {
+import { apiUrl } from './config';
 
-	const res = await fetch("/api/subscriptions/", {
+export async function fetchSubscriptions(accessToken) {
+	const res = await fetch(apiUrl("/api/subscriptions/"), {
 		headers: {
 			Authorization: `Bearer ${accessToken}`,
 			'Content-Type': 'application/json',

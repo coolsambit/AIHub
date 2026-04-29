@@ -1,4 +1,5 @@
-// Calls the backend API to get Foundries for a given subscription
+import { apiUrl } from './config';
+
 export async function fetchFoundries(accessToken, subscriptionId, userId) {
 	// Remove '/subscriptions/' prefix if present
 	let cleanSubscriptionId = subscriptionId;
@@ -6,7 +7,7 @@ export async function fetchFoundries(accessToken, subscriptionId, userId) {
 		cleanSubscriptionId = cleanSubscriptionId.replace('/subscriptions/', '');
 	}
 	// ...existing code...
-	const url = `/api/foundries/?userId=${encodeURIComponent(userId)}&subscriptionId=${encodeURIComponent(cleanSubscriptionId)}`;
+	const url = apiUrl(`/api/foundries/?userId=${encodeURIComponent(userId)}&subscriptionId=${encodeURIComponent(cleanSubscriptionId)}`);
 	const response = await fetch(url, {
 		headers: {
 			Authorization: `Bearer ${accessToken}`,

@@ -1,9 +1,11 @@
+import { apiUrl } from './config';
+
 export async function fetchFoundryKeys(accessToken, subscriptionId, resourceGroupName, accountName) {
   let cleanSubId = subscriptionId;
   if (typeof cleanSubId === 'string' && cleanSubId.startsWith('/subscriptions/')) {
     cleanSubId = cleanSubId.replace('/subscriptions/', '');
   }
-  const url = `/api/keys/?subscriptionId=${encodeURIComponent(cleanSubId)}&resourceGroupName=${encodeURIComponent(resourceGroupName)}&accountName=${encodeURIComponent(accountName)}`;
+  const url = apiUrl(`/api/keys/?subscriptionId=${encodeURIComponent(cleanSubId)}&resourceGroupName=${encodeURIComponent(resourceGroupName)}&accountName=${encodeURIComponent(accountName)}`);
   const response = await fetch(url, {
     method: 'GET',
     headers: {
