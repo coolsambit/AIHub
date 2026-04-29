@@ -7,7 +7,7 @@ on:
 env:
   AZURE_FUNCTIONAPP_NAME: 'AIHubApis'
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'AIHubBackend'
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.13'
 
 jobs:
   build-and-deploy:
@@ -28,7 +28,7 @@ jobs:
           --subscription "AIDataSense HUb" \
           --resource-group AIHub \
           --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-          --settings FUNCTIONS_WORKER_RUNTIME=python PYTHON_VERSION=3.11
+          --settings FUNCTIONS_WORKER_RUNTIME=python PYTHON_VERSION=3.13
 
     - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
       uses: actions/setup-python@v5
