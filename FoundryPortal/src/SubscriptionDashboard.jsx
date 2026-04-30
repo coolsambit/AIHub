@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import WelcomeBanner from "./WelcomeBanner";
 import ModelDetails from './features/subscriptions-auth/ModelDetails';
 import AgentDetails from './features/subscriptions-auth/AgentDetails';
@@ -24,7 +24,10 @@ const SubscriptionDashboard = ({
 
 	const selectedFoundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
 	const displayLocation = selectedFoundry ? locationMap[selectedFoundry] || selectedFoundryData?.location || 'N/A' : '';
-	const displayProjectEndpoint = selectedFoundryData?.endpoint || '';
+	const displayFoundryEndpoint = selectedFoundryData?.endpoint || '';
+	const displayOpenAIEndpoint = selectedFoundry ? `https://${selectedFoundry.toLowerCase()}.openai.azure.com/openai/v1` : '';
+	const selectedProjectData = projects.find(p => (p.id || p.name) === selectedProject);
+	const displayProjectEndpoint = selectedProjectData?.endpoint || '';
 	const displayResourceGroup = selectedFoundryData?.resource_group || '';
 	const displayResourceGroupRegion = selectedFoundryData?.resource_group_region || '';
 
@@ -100,7 +103,8 @@ const SubscriptionDashboard = ({
 
 				{/* Configuration Panel */}
 				<div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 space-y-6">
-					{/* Row 1: Dropdowns */}
+
+					{/* Row 1: Subscription | Foundry | Foundry Location */}
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						<div className="space-y-2">
 							<label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
@@ -145,6 +149,24 @@ const SubscriptionDashboard = ({
 						</div>
 
 						<div className="space-y-2">
+							<label className="block text-sm font-semibold text-gray-700">Foundry Location</label>
+							<input type="text" value={displayLocation} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+						</div>
+					</div>
+
+					{/* Row 2: Resource Group | Resource Group Region | Project */}
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+						<div className="space-y-2">
+							<label className="block text-sm font-semibold text-gray-700">Resource Group</label>
+							<input type="text" value={displayResourceGroup} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+						</div>
+
+						<div className="space-y-2">
+							<label className="block text-sm font-semibold text-gray-700">Resource Group Region</label>
+							<input type="text" value={displayResourceGroupRegion} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+						</div>
+
+						<div className="space-y-2">
 							<label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
 								Project
 								<FoundrySnowflakeSpinner size={16} spinning={isProjectsLoading} />
@@ -163,29 +185,26 @@ const SubscriptionDashboard = ({
 						</div>
 					</div>
 
-					{/* Row 2: Location, Resource Group, Resource Group Region */}
+					{/* Row 3: AI Foundry Endpoint | OpenAI Endpoint | Project Endpoint */}
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						<div className="space-y-2">
-							<label className="block text-sm font-semibold text-gray-700">Location</label>
-							<input type="text" value={displayLocation} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+							<label className="block text-sm font-semibold text-gray-700">AI Foundry Endpoint</label>
+							<input type="text" value={displayFoundryEndpoint} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" placeholder="—" />
 						</div>
+
 						<div className="space-y-2">
-							<label className="block text-sm font-semibold text-gray-700">Resource Group</label>
-							<input type="text" value={displayResourceGroup} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+							<label className="block text-sm font-semibold text-gray-700">OpenAI Endpoint</label>
+							<input type="text" value={displayOpenAIEndpoint} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" placeholder="—" />
 						</div>
+
 						<div className="space-y-2">
-							<label className="block text-sm font-semibold text-gray-700">Resource Group Region</label>
-							<input type="text" value={displayResourceGroupRegion} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+							<label className="block text-sm font-semibold text-gray-700">Project Endpoint</label>
+							<input type="text" value={displayProjectEndpoint} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" placeholder="—" />
 						</div>
 					</div>
 
-					{/* Row 3: Foundry Endpoint, API Key 1, API Key 2 */}
+					{/* Row 4: API Key 1 | API Key 2 | (empty) */}
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-						<div className="space-y-2">
-							<label className="block text-sm font-semibold text-gray-700">Foundry Endpoint</label>
-							<input type="text" value={displayProjectEndpoint} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
-						</div>
-
 						<div className="space-y-2">
 							<label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
 								API Key 1
@@ -219,7 +238,14 @@ const SubscriptionDashboard = ({
 								</div>
 							)}
 						</div>
+
+						{apiKey1 && apiKey2 && (
+							<div className="flex items-center justify-center rounded-lg px-4 py-2.5 bg-amber-50 border border-amber-200">
+								<span className="text-sm font-semibold text-amber-700 text-center">All endpoints use the same key</span>
+							</div>
+						)}
 					</div>
+
 				</div>
 
 				{/* Dashboard Grid — 2×2 */}

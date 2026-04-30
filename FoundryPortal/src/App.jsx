@@ -141,10 +141,13 @@ function App() {
 
 	// 3. Load models and projects when both subscription and foundry are valid
 	useEffect(() => {
-		if (!selectedSubscription || !selectedFoundry) return;
+		if (!selectedSubscription || !selectedFoundry || !foundries.length) return;
 
 		const foundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
-		if (!foundryData?.resource_group) return;
+		if (!foundryData?.resource_group) {
+			setInventoryError(null);
+			return;
+		}
 
 		setIsModelsLoading(true);
 		setIsProjectsLoading(true);
@@ -188,6 +191,7 @@ function App() {
 
 	// 5. Load Agents when project changes
 	useEffect(() => {
+		if (!selectedFoundry || !foundries.length) { setAgents([]); return; }
 		const foundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
 		const projectData = projects.find(p => (p.id || p.name) === selectedProject);
 		const projectName = projectData?.name || selectedProject;

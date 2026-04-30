@@ -15,6 +15,7 @@ class ProjectOut(BaseModel):
     name: str
     id: str
     status: str
+    endpoint: str = ""
 
 
 def _token_from_request(request: Request) -> str:
@@ -57,10 +58,13 @@ def list_projects(
             props = item.get("properties") or {}
             raw_name = item.get("name", "")
             name = raw_name.split("/")[-1] if "/" in raw_name else raw_name
+            endpoints = props.get("endpoints") or {}
+            endpoint = endpoints.get("AI Foundry API") or ""
             rows.append(ProjectOut(
                 name=name,
                 id=item.get("id", ""),
                 status=props.get("provisioningState") or props.get("status") or "unknown",
+                endpoint=endpoint,
             ))
         next_url = payload.get("nextLink")
 

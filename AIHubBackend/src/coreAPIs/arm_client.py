@@ -28,11 +28,14 @@ def arm_get(url: str, token: str, timeout: int = 30) -> requests.Response:
 
 
 def arm_post(url: str, token: str, timeout: int = 30) -> requests.Response:
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
     last_err: Exception | None = None
     for attempt in range(3):
         try:
-            with _make_session(token, is_post=True) as s:
-                return s.post(url, json={}, timeout=timeout)
+            return requests.post(url, headers=headers, json={}, timeout=timeout)
         except requests.exceptions.ConnectionError as e:
             last_err = e
             time.sleep(0.5 * (attempt + 1))
