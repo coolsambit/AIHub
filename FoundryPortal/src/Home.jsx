@@ -269,7 +269,11 @@ export default function Home({ subscriptionRoles, cognitiveRoles, azureAiRoles }
           <h2 className="text-2xl font-bold mb-2 text-blue-900">Foundry Tools
               <a href="https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/tool-catalog" target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline text-base font-normal align-middle">Learn More</a>
           </h2>
-          <p className="text-gray-700 text-base">Foundry Tools are reusable functions, plugins, and skills that agents and models can invoke to interact with external systems, perform computations, or automate tasks. Tools extend what your agents can do in Microsoft Foundry Agent Service. An agent on its own can generate text, but tools let it take action - searching the web, running code, querying your data, or calling your own APIs.</p>
+          <p className="text-gray-700 text-base">Foundry Tools are reusable functions, plugins, and skills that agents and models can invoke to interact with external systems, perform computations, or automate tasks. Tools extend what your agents can do in Microsoft Foundry Agent Service. 
+            An agent on its own can generate text, but tools let it take action - searching the web, running code, querying your data, 
+            or calling your own APIs.</p><p>To empower AI agent with grounded data or the capability to take actions and automating workflows, the Foundry Agent service provides a wide range of built-in tools, such as File Search, catalog tools, such as GitHub MCP tool, and custom tools.
+
+Tools are optional capabilities you can add to AI agent for AI models to decide and pick based on the user query and context. When a user sends a query, the AI model identifies the intent with the context and potentially reqrites the user query. Then the AI model decides which tools to be called for each run.  </p>
           <ul className="list-disc pl-6 text-gray-700 text-sm mt-2">
             <li>Built-in tools: code interpreter, file search, Bing grounding, web browsing</li>
             <li>Marketplace tools: third-party plugins, SaaS integrations</li>

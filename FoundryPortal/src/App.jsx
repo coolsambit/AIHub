@@ -194,7 +194,7 @@ function App() {
 		if (!selectedFoundry || !foundries.length) { setAgents([]); return; }
 		const foundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
 		const projectData = projects.find(p => (p.id || p.name) === selectedProject);
-		const projectName = projectData?.name || selectedProject;
+		const projectName = projectData?.name || selectedProject?.trim().split('/').filter(Boolean).pop() || '';
 
 		if (selectedProject && foundryData?.resource_group) {
 			setIsAgentsLoading(true);
@@ -249,7 +249,10 @@ function App() {
 	const handleProviderClick = (provider) => {
 		setShowLogin(false);
 		if (provider === 'google') {
-			window.location.href = '/auth/google';
+			instance.loginPopup({
+				...loginRequest,
+				extraQueryParameters: { domain_hint: 'google.com' },
+			}).catch((e) => console.error(e));
 		} else if (provider === 'microsoft') {
 			instance.loginPopup(loginRequest).catch((e) => console.error(e));
 		}
@@ -265,6 +268,7 @@ function App() {
 		apiKey1, apiKey2, isKeysLoading, keysError,
 		retryKeys: () => loadKeys(selectedFoundry, selectedSubscription, foundries),
 		error: inventoryError,
+		getAccessToken,
 	};
 
 	return (

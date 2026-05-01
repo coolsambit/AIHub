@@ -5,12 +5,73 @@ const Badge = ({ children, color = 'gray' }) => {
     green:  'bg-green-100 text-green-700 border-green-200',
     blue:   'bg-blue-100 text-blue-700 border-blue-200',
     yellow: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    red:    'bg-red-100 text-red-700 border-red-200',
     gray:   'bg-gray-100 text-gray-600 border-gray-200',
   };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${colors[color]}`}>
       {children}
     </span>
+  );
+};
+
+const GuardrailsGrid = ({ guardrails, isGuardrailsLoading }) => {
+  if (isGuardrailsLoading) {
+    return <p className="text-xs text-gray-400 italic">Loading guardrails…</p>;
+  }
+  if (!guardrails) return null;
+  if (guardrails.error) {
+    return <p className="text-xs text-red-500">Could not load guardrails: {guardrails.error}</p>;
+  }
+
+  const list = guardrails.guardrails || [];
+  const assignedId = guardrails.assignedGuardrailId;
+
+  if (list.length === 0) {
+    return assignedId
+      ? <p className="text-xs text-gray-600">Assigned: <span className="font-medium">{assignedId}</span> <span className="text-gray-400">(project guardrail list unavailable)</span></p>
+      : <p className="text-xs text-gray-400 italic">No guardrails assigned to this agent.</p>;
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-xl border border-purple-100 shadow-sm">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="bg-purple-50 text-purple-700">
+            <th className="text-left px-3 py-2 font-semibold">Name</th>
+            <th className="text-left px-3 py-2 font-semibold">Assigned</th>
+            <th className="text-left px-3 py-2 font-semibold">Properties</th>
+          </tr>
+        </thead>
+        <tbody>
+          {list.map((gr, i) => {
+            const props = gr.properties || {};
+            const propEntries = Object.entries(props).filter(([, v]) => v !== null && v !== undefined && v !== '');
+            return (
+              <tr key={gr.id || gr.name || i} className={`border-t border-purple-50 ${gr.assignedToThisAgent ? 'bg-green-50' : 'bg-white'}`}>
+                <td className="px-3 py-2 font-medium text-gray-800 whitespace-nowrap">{gr.name || '—'}</td>
+                <td className="px-3 py-2">
+                  {gr.assignedToThisAgent
+                    ? <Badge color="green">Assigned</Badge>
+                    : <Badge color="gray">—</Badge>}
+                </td>
+                <td className="px-3 py-2 text-gray-600">
+                  {propEntries.length === 0
+                    ? <span className="italic text-gray-400">—</span>
+                    : (
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                        {propEntries.map(([k, v]) => (
+                          <span key={k}><span className="font-medium text-gray-700">{k}:</span> {String(v)}</span>
+                        ))}
+                      </div>
+                    )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
@@ -21,7 +82,7 @@ const InfoRow = ({ label, value }) => (
   </div>
 );
 
-const AgentDetails = ({ agent }) => {
+const AgentDetails = ({ agent, guardrails, isGuardrailsLoading }) => {
   if (!agent) {
     return (
       <div className="h-full flex items-center justify-center text-gray-400 italic text-sm">
@@ -82,6 +143,14 @@ const AgentDetails = ({ agent }) => {
         <div>
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Instructions</p>
           <p className="text-xs text-gray-600 leading-relaxed bg-white border border-purple-100 rounded-xl p-3 shadow-sm line-clamp-4">{instructions}</p>
+        </div>
+      )}
+
+      {/* GuardRails */}
+      {(guardrails || isGuardrailsLoading) && (
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">GuardRails</p>
+          <GuardrailsGrid guardrails={guardrails} isGuardrailsLoading={isGuardrailsLoading} />
         </div>
       )}
 
