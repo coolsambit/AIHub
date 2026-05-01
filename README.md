@@ -1,289 +1,193 @@
-# Hello World Chat Engine (Python Agent Framework)
+# AIHub — Azure AI Foundry Management Portal
 
-This is a minimal Microsoft Agent Framework chat engine using Python and Azure AI Foundry.
+A two-tier web application for managing and exploring Azure AI Foundry resources. Administrators sign in with Microsoft Entra ID and get a live view of subscriptions, foundries, projects, models, agents, connections, and guardrails across their Azure estate.
 
-For operational issues and region limitations, see [README-TROUBLESHOOTING.md](KB/README-TROUBLESHOOTING.md).
+---
 
-## What is included
+## Architecture
 
-- HTTP-hosted agent entry point (`Model Manager/app.py`)
-- Pinned SDK versions for preview compatibility (`Model Manager/requirements.txt`)
-- Environment variable template (`Model Manager/.env.example`)
-
-## Where Agent Framework Fits
-
-Agent Framework is the orchestration/runtime layer in your app process.
-
-- Azure AI Foundry provides the project endpoint and model deployment.
-- Agent Framework creates and runs the agent using those Foundry resources.
-- The hosting adapter exposes the agent over HTTP so apps or tools can call it.
-
-```mermaid
-flowchart LR
-	U[User or Client App] --> H[HTTP Endpoint\nfrom_agent_framework]
-	H --> AF[Python App\nAgent Framework Runtime]
-	AF --> F[Azure AI Foundry Project]
-	F --> M[Model Deployment]
-	M --> F --> AF --> H --> U
+```
+Browser (React + Vite)
+        │  MSAL Bearer token
+        ▼
+FastAPI Backend  (Azure Function App — AIHubApis)
+        │  ARM REST API calls
+        ▼
+Azure Resource Manager
+        │
+        ├── Subscriptions
+        ├── AI Foundries  (Microsoft.CognitiveServices/accounts)
+        ├── Projects
+        ├── Models
+        ├── Agents / Applications
+        ├── Connections
+        └── GuardRails
 ```
 
-## Prerequisites
+**Frontend** — React 18 + Vite + Tailwind CSS, deployed to Azure App Service (`FoundryDevPortal`)  
+**Backend** — Python FastAPI hosted as an Azure Function App (`AIHubApis`)  
+**Auth** — MSAL v4 (`@azure/msal-browser`) with Azure AD, using `loginPopup`. Scope: `https://management.azure.com/.default`  
+**External IdP** — Google accounts supported via Entra ID B2B External Identities federation
 
-- Python 3.10+
-- Azure sign-in (`az login`) or another supported credential flow
-- Azure AI Foundry project + model deployment
+---
 
-## Project Setup and configuration
+## Repository Structure
 
-- Project access and role assignment guidance: [Project-Auth.md](KB/Project-Auth.md)
-- Shared versus dedicated model strategy: [Model Deployment Strategy.md](KB/Model%20Deployment%20Strategy.md)
+```
+AIHub/
+├── AIHubBackend/                   # Python FastAPI backend
+│   └── src/coreAPIs/
+│       ├── main.py                 # FastAPI app, CORS, router registration
+│       ├── arm_client.py           # Shared ARM HTTP client with retry
+│       ├── subscriptions/          # List Azure subscriptions
+│       ├── foundries/              # Discover AI Foundry accounts
+│       ├── projects/               # List projects within a Foundry
+│       ├── models/                 # List model deployments
+│       ├── agents/                 # List agents, get details, get guardrails
+│       ├── connections/            # List Foundry connections
+│       ├── keys/                   # Retrieve Foundry API keys
+│       └── Roles/                  # RBAC role assignments
+│
+├── FoundryPortal/                  # React frontend
+│   └── src/
+│       ├── App.jsx                 # Root — all inventory state, auth, effects
+│       ├── SubscriptionDashboard.jsx  # Main dashboard (subscription → foundry → project)
+│       ├── Home.jsx                # Info page — agent types, model types, frameworks
+│       ├── api/                    # API client modules (one per resource type)
+│       └── features/subscriptions-auth/
+│           ├── msalClient.js       # MSAL config
+│           ├── AgentDetails.jsx    # Agent detail panel + guardrails grid
+│           └── ModelDetails.jsx    # Model detail panel
+│
+└── .github/workflows/
+    ├── master_AIHubBackend.yml     # Deploy backend on push to master
+    └── master_FoundryDevPortal.yml # Deploy frontend on push to master
+```
 
-## Creating foundry Resource
+---
 
-When you create a Foundry resource, Azure asks for both:
+## API Endpoints
 
-- Resource Group
-- Region (Location)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/subscriptions/` | List Azure subscriptions |
+| GET | `/foundries/` | List AI Foundry accounts |
+| GET | `/projects/` | List projects in a Foundry |
+| GET | `/models/` | List model deployments |
+| GET | `/agents/` | List agents in a project |
+| GET | `/agents/{agentName}` | Full agent details including guardrail assignments |
+| GET | `/agents/{agentName}/guardrails` | Project-level guardrails with assignment flag |
+| GET | `/connections/` | List Foundry connections |
+| GET | `/keys/` | Retrieve Foundry API keys |
+| GET | `/Roles/` | RBAC role assignments |
 
-These are related but not the same thing.
+All endpoints accept a Bearer token forwarded from the frontend. Query parameters include `subscriptionId`, `resourceGroup`, `foundryName`, and `projectName` as required.
 
-### Resource Group region
+---
 
-The resource group region stores metadata for the resource group.
-It does not force every resource inside that group to be created in the same region.
+## Local Development
 
-### Foundry resource region
+### Prerequisites
 
-This is where the Foundry service actually runs.
-It affects:
+- Python 3.12+
+- Node.js 20+
+- Azure CLI (`az login`)
+- An Azure subscription with AI Foundry resources
 
-- Feature and model availability
-- Agent capability availability
-- Latency and data residency behavior
-- Regional quotas and capacity
-
-### Why Azure asks for region again
-
-Foundry is a regional service. Azure needs the exact deployment region for service capacity and feature support.
-
-Example:
-
-- Resource Group: East US
-- Foundry resource: East US 2
-
-This is valid.
-
-### Practical guidance
-
-1. Pick region based on Foundry feature/model availability first.
-2. Then optimize for latency/compliance needs.
-3. Keep resource group and resource in the same region only when it also meets feature requirements.
-
-## Foundry Networking and Identity (Portal Guide)
-
-When you create Azure AI Foundry resources in Azure, you typically configure these in the same setup flow:
-
-- Networking access mode (All networks vs Selected networks)
-- Private endpoint (optional, recommended for enterprise)
-- Managed identity (system-assigned or user-assigned)
-
-### What "Selected networks" Means
-
-"Selected networks" means your Foundry resource is not open to all public sources.
-Only traffic from explicitly allowed network paths is accepted.
-
-In practice, this usually means one of these patterns:
-
-1. Allow specific VNET/subnet rules (public endpoint with firewall rules).
-2. Use Private Endpoint and route traffic privately over Azure networking.
-
-### Why You Are Asked for VNET and Subnet
-
-Azure needs to know exactly where trusted traffic originates.
-
-- VNET defines the private network boundary.
-- Subnet defines the exact segment where access is allowed or where the private endpoint NIC is placed.
-
-### If Your App Is in Another VNET or Another Subscription
-
-Yes, VNETs belong to subscriptions, but cross-subscription connectivity is supported.
-You can still connect to Foundry across VNETs/subscriptions if networking and DNS are set correctly.
-
-Common approaches:
-
-1. Private Endpoint in the workload VNET
-
-- Create/approve a Private Endpoint for the Foundry resource in the VNET where your app runs (even if that VNET is in another subscription, with proper permissions).
-- Configure private DNS so the Foundry endpoint resolves to the private IP.
-
-2. Peered VNETs to a central Private Endpoint
-
-- Host Private Endpoint in a hub VNET and connect spoke VNETs using peering.
-- Ensure NSG/UDR rules allow traffic and private DNS zones are linked to all consuming VNETs.
-
-3. Public endpoint with Selected networks (less private)
-
-- Keep public endpoint enabled but restrict allowed VNET/subnet rules.
-- Useful for simpler setups, but less strict than Private Endpoint-only designs.
-
-### Managed Identity in This Setup
-
-Managed identity is for identity/authz, not network path.
-
-- Networking controls "can it reach the endpoint?"
-- Managed identity controls "is it authorized after reaching it?"
-
-For production, use both:
-
-1. Private networking (Selected networks + Private Endpoint).
-2. Managed identity + least-privilege RBAC on Foundry resources.
-
-### Quick Rule of Thumb
-
-- If you want strongest isolation: disable public access and use Private Endpoint.
-- If consumers are in multiple VNETs/subscriptions: plan DNS + peering (or multiple private endpoints) up front.
-- If you are unsure, start with one workload VNET and one private endpoint, validate, then scale the topology.
-
-## Setup
-
-1. Create and activate a virtual environment.
-2. Install dependencies:
+### Backend
 
 ```bash
+cd AIHubBackend
 pip install -r requirements.txt
+uvicorn src.coreAPIs.main:app --host 0.0.0.0 --port 8020 --reload
 ```
 
-3. Create `Model Manager/.env` from `Model Manager/.env.example` and set values:
+Swagger UI available at `http://localhost:8020/docs`
 
-- `FOUNDRY_PROJECT_ENDPOINT`
-- `FOUNDRY_MODEL_DEPLOYMENT_NAME`
-
-## Run
+### Frontend
 
 ```bash
-python Model Manager/app.py
-```
-
-When started successfully, the service runs using the Agent Framework hosting adapter.
-
-## Tiny HTTP Test Example
-
-After starting the service, send a simple request to confirm the hello-world flow.
-
-PowerShell example:
-
-```powershell
-$body = @{
-	input = "Hi there"
-	stream = $false
-} | ConvertTo-Json -Depth 5
-
-Invoke-RestMethod \
-	-Method POST \
-	-Uri "http://localhost:8088/runs" \
-	-ContentType "application/json" \
-	-Body $body
-```
-
-curl example:
-
-```bash
-curl -X POST "http://localhost:8088/runs" \
-	-H "Content-Type: application/json" \
-	-d "{\"input\":\"Hi there\",\"stream\":false}"
-```
-
-Expected behavior:
-
-1. The first response should include a greeting such as Hello, world!.
-2. Responses should remain concise and friendly.
-
-## Request Flow
-
-The runtime flow for a single chat request looks like this:
-
-```mermaid
-sequenceDiagram
-	participant C as Client
-	participant S as app.py HTTP Adapter
-	participant A as Agent Framework Agent
-	participant F as Azure AI Foundry
-	participant D as Model Deployment
-
-	C->>S: HTTP chat request
-	S->>A: Forward message
-	A->>F: Invoke project endpoint
-	F->>D: Run model inference
-	D-->>F: Model output
-	F-->>A: Agent response payload
-	A-->>S: Final response
-	S-->>C: HTTP response
-```
-
-## Startup Flow
-
-At startup, `app.py` does the following:
-
-1. Loads environment variables (`load_dotenv(override=False)`).
-2. Validates `FOUNDRY_PROJECT_ENDPOINT` and `FOUNDRY_MODEL_DEPLOYMENT_NAME`.
-3. Creates `DefaultAzureCredential` for auth.
-4. Creates `AzureAIClient` and agent via `as_agent(...)`.
-5. Runs the HTTP server adapter with `from_agent_framework(agent).run_async()`.
-
-## Notes
-
-- `load_dotenv(override=False)` is used so hosted/runtime env vars take precedence over local `.env`.
-- SDKs are pinned because preview versions can have breaking API changes.
-
-## AIDS Foundry Portal (React + FastAPI)
-
-This repo now includes a simple developer portal wrapper over Foundry discovery.
-
-- Backend: `src/Agent Manager` (FastAPI)
-- Frontend: `src/Portal UI` (React + Vite)
-
-### Separation of concerns
-
-1. API routes and request handling are in `src/Agent Manager/api.py`.
-2. Foundry discovery logic is isolated in `src/Agent Manager/foundry_inventory.py`.
-3. Portal DTO contracts are isolated in `src/Agent Manager/portal_models.py`.
-4. UI rendering and interaction are in `src/Portal UI/src/App.jsx`.
-
-### Portal sections
-
-- `AIDS Agents` from `/v1/portal/agents`
-- `AIDS Models` from `/v1/portal/models`
-
-### Multi-Foundry configuration
-
-The portal supports one or many Foundry projects.
-
-- Copy `src/Agent Manager/.env.example` to `src/Agent Manager/.env`
-- Set either:
-	- `FOUNDRY_PROJECT_ENDPOINT` for a single Foundry (fallback mode), or
-	- `FOUNDRY_PORTAL_PROJECTS` JSON array for multi-Foundry mode
-
-Example:
-
-```env
-FOUNDRY_PORTAL_PROJECTS=[{"name":"Foundry-Dev","endpoint":"https://your-dev.services.ai.azure.com/api/projects/dev"},{"name":"Foundry-Test","endpoint":"https://your-test.services.ai.azure.com/api/projects/test"},{"name":"Foundry-Prod","endpoint":"https://your-prod.services.ai.azure.com/api/projects/prod"}]
-```
-
-### Run backend
-
-```bash
-cd src/Agent\ Manager
-python app.py
-```
-
-Backend runs on `http://127.0.0.1:8010`.
-
-### Run React UI
-
-```bash
-cd src/Portal\ UI
+cd FoundryPortal
 npm install
 npm run dev
 ```
 
-UI runs on `http://127.0.0.1:5173` and proxies `/v1/*` to the backend.
+Portal runs at `http://localhost:5173`
+
+Set the backend URL in `FoundryPortal/.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:8020
+```
+
+---
+
+## Deployment
+
+Both services deploy automatically via GitHub Actions **on every push to `master`**.
+
+| Service | Target | Workflow |
+|---------|--------|----------|
+| Backend | Azure Function App — `AIHubApis` | `master_AIHubBackend.yml` |
+| Frontend | Azure App Service — `FoundryDevPortal` | `master_FoundryDevPortal.yml` |
+
+Development work should be done on the `Dev` branch. Merge to `master` only when ready to deploy.
+
+```bash
+# Merge Dev to master to trigger deployment
+git checkout master
+git merge Dev
+git push origin master
+```
+
+---
+
+## Authentication
+
+### Microsoft (Entra ID)
+Users sign in with their Microsoft / Azure AD account. The frontend acquires a token scoped to `https://management.azure.com/.default` and forwards it to the backend, which passes it directly to ARM.
+
+### Google (B2B Federation)
+Google accounts are supported via Entra ID External Identities. The flow is:
+
+```
+User clicks Google → Microsoft login page → enters Gmail →
+Entra detects Google domain → redirects to Google →
+Google authenticates → Entra issues Azure AD token → portal loads
+```
+
+**Setup required:**
+1. Google Cloud Console — create OAuth 2.0 client, add redirect URIs:
+   - `https://login.microsoftonline.com/common/federation/oauth2`
+   - `https://login.microsoftonline.com/te/{tenantId}/oauth2/authresp`
+2. Entra ID → External Identities → All identity providers → Google — paste client ID and secret
+3. Invite Google users as guest users in the Entra tenant
+
+---
+
+## Branch Strategy
+
+| Branch | Purpose | Auto-deploys |
+|--------|---------|--------------|
+| `master` | Production — protected, merge only | Yes |
+| `Dev` | Active development | No |
+
+Direct pushes to `master` and `Dev` are blocked via GitHub branch protection rules.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend framework | React 18 |
+| Frontend build | Vite 5 |
+| Styling | Tailwind CSS 4 |
+| Auth (frontend) | MSAL Browser v4 |
+| Routing | React Router v7 |
+| Backend framework | FastAPI |
+| Backend runtime | Python 3.12 |
+| Backend hosting | Azure Function App (Flex Consumption) |
+| Frontend hosting | Azure App Service |
+| CI/CD | GitHub Actions |
+| Azure identity | DefaultAzureCredential + Bearer token forwarding |
