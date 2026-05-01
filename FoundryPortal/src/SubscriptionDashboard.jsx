@@ -3,6 +3,7 @@ import WelcomeBanner from "./WelcomeBanner";
 import ModelDetails from './features/subscriptions-auth/ModelDetails';
 import AgentDetails from './features/subscriptions-auth/AgentDetails';
 import FoundrySnowflakeSpinner from './FoundrySnowflakeSpinner';
+import { fetchAgentGuardrails } from './api/AgentsApi';
 
 const SubscriptionDashboard = ({
 	isAuthenticated,
@@ -13,9 +14,36 @@ const SubscriptionDashboard = ({
 	agents, isAgentsLoading,
 	apiKey1, apiKey2, isKeysLoading, keysError, retryKeys,
 	error,
+	getAccessToken,
 }) => {
 	const [selectedModel, setSelectedModel] = useState(null);
 	const [selectedAgent, setSelectedAgent] = useState(null);
+	const [guardrails, setGuardrails] = useState(null);
+	const [isGuardrailsLoading, setIsGuardrailsLoading] = useState(false);
+
+	const shortName = (armIdOrName) => armIdOrName?.trim().split('/').filter(Boolean).pop() ?? '';
+
+	const handleAgentClick = async (agent) => {
+		setSelectedAgent(agent);
+		setGuardrails(null);
+
+		const foundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
+		const projectData = projects.find(p => (p.id || p.name) === selectedProject);
+		const projectName = projectData?.name || shortName(selectedProject);
+		if (!foundryData?.resource_group || !agent.name) return;
+
+		setIsGuardrailsLoading(true);
+		try {
+			const token = await getAccessToken();
+			if (!token) return;
+			const data = await fetchAgentGuardrails(token, selectedSubscription, foundryData.resource_group, selectedFoundry, projectName, agent.name);
+			setGuardrails(data);
+		} catch (e) {
+			setGuardrails({ error: e.message });
+		} finally {
+			setIsGuardrailsLoading(false);
+		}
+	};
 
 	const locationMap = {
 		'Foundry North America': 'East US',
@@ -320,7 +348,7 @@ const SubscriptionDashboard = ({
 										agents.filter(a => a.name).map(a => (
 											<button
 												key={a.id || a.name}
-												onClick={() => setSelectedAgent(a)}
+												onClick={() => handleAgentClick(a)}
 												className={`w-full text-left rounded-lg px-3 py-1.5 text-xs font-semibold border transition
 													${selectedAgent?.id === a.id
 														? 'bg-purple-600 text-white border-purple-600 shadow'
@@ -340,7 +368,7 @@ const SubscriptionDashboard = ({
 							{/* Details — 80% */}
 							<div className="flex-1 min-w-0">
 								<h4 className="text-sm font-semibold text-purple-700 mb-3">Details</h4>
-								<AgentDetails agent={selectedAgent} />
+								<AgentDetails agent={selectedAgent} guardrails={guardrails} isGuardrailsLoading={isGuardrailsLoading} />
 							</div>
 						</div>
 					</div>
