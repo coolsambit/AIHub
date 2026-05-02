@@ -1,9 +1,9 @@
 ﻿import React, { useState } from 'react';
 import WelcomeBanner from "./WelcomeBanner";
-import ModelDetails from './features/subscriptions-auth/ModelDetails';
 import AgentDetails from './features/subscriptions-auth/AgentDetails';
+import ModelGuardrails from './features/subscriptions-auth/ModelGuardrails';
 import FoundrySnowflakeSpinner from './FoundrySnowflakeSpinner';
-import { fetchAgentGuardrails } from './api/AgentsApi';
+import { fetchAgentGuardrails, fetchModelGuardrails } from './api/AgentsApi';
 
 const SubscriptionDashboard = ({
 	isAuthenticated,
@@ -17,11 +17,33 @@ const SubscriptionDashboard = ({
 	getAccessToken,
 }) => {
 	const [selectedModel, setSelectedModel] = useState(null);
+	const [modelGuardrails, setModelGuardrails] = useState(null);
+	const [isModelGuardrailsLoading, setIsModelGuardrailsLoading] = useState(false);
 	const [selectedAgent, setSelectedAgent] = useState(null);
 	const [guardrails, setGuardrails] = useState(null);
 	const [isGuardrailsLoading, setIsGuardrailsLoading] = useState(false);
 
 	const shortName = (armIdOrName) => armIdOrName?.trim().split('/').filter(Boolean).pop() ?? '';
+
+	const handleModelClick = async (model) => {
+		setSelectedModel(model);
+		setModelGuardrails(null);
+
+		const foundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
+		if (!foundryData?.resource_group || !model.name) return;
+
+		setIsModelGuardrailsLoading(true);
+		try {
+			const token = await getAccessToken();
+			if (!token) return;
+			const data = await fetchModelGuardrails(token, selectedSubscription, foundryData.resource_group, selectedFoundry, model.name);
+			setModelGuardrails(data);
+		} catch (e) {
+			setModelGuardrails({ error: e.message });
+		} finally {
+			setIsModelGuardrailsLoading(false);
+		}
+	};
 
 	const handleAgentClick = async (agent) => {
 		setSelectedAgent(agent);
@@ -287,8 +309,8 @@ const SubscriptionDashboard = ({
 						</h3>
 
 						<div className="flex gap-4 min-h-48">
-							{/* Pooled Models — 20% */}
-							<div className="w-1/5 shrink-0 flex flex-col">
+							{/* Pooled Models — 50% */}
+							<div className="w-1/2 shrink-0 flex flex-col">
 								<h4 className="text-sm font-semibold text-blue-700 mb-2">Pooled Models</h4>
 								<div className="flex flex-col gap-2">
 									{!selectedFoundry ? (
@@ -301,7 +323,7 @@ const SubscriptionDashboard = ({
 										models.filter(model => model.name).map(model => (
 											<button
 												key={model.id}
-												onClick={() => setSelectedModel(model)}
+												onClick={() => handleModelClick(model)}
 												className={`w-full text-left rounded-lg px-3 py-1.5 text-xs font-semibold border transition
 													${selectedModel?.id === model.id
 														? 'bg-blue-600 text-white border-blue-600 shadow'
@@ -318,10 +340,9 @@ const SubscriptionDashboard = ({
 							{/* Divider */}
 							<div className="w-px bg-blue-200 shrink-0" />
 
-							{/* Details — 80% */}
-							<div className="flex-1 min-w-0">
-								<h4 className="text-sm font-semibold text-blue-700 mb-3">Details</h4>
-								<ModelDetails model={selectedModel} />
+							{/* Guardrails — 50% */}
+							<div className="w-1/2 min-w-0 overflow-y-auto">
+								<ModelGuardrails model={selectedModel} guardrails={modelGuardrails} isGuardrailsLoading={isModelGuardrailsLoading} />
 							</div>
 						</div>
 					</div>
@@ -367,7 +388,6 @@ const SubscriptionDashboard = ({
 
 							{/* Details — 80% */}
 							<div className="flex-1 min-w-0">
-								<h4 className="text-sm font-semibold text-purple-700 mb-3">Details</h4>
 								<AgentDetails agent={selectedAgent} guardrails={guardrails} isGuardrailsLoading={isGuardrailsLoading} />
 							</div>
 						</div>
