@@ -2,6 +2,5 @@
 from .aihub import AIHub
 
 
-from .connections.api import ConnectionsAPI
 from .subscriptions.api import SubscriptionsAPI
 from .foundries.api import FoundriesAPI
