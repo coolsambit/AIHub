@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from fastapi import APIRouter, Query, Request, HTTPException
+from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
 from coreAPIs.arm_client import arm_get
 
@@ -113,4 +114,50 @@ def get_agent(
         "properties": props,  # full properties so no data is hidden
     }
 
+
+@router.get("/tools", summary="Aggregate tool types in use across all agents in a project")
+def list_tools(
+    request: Request,
+    subscriptionId: str = Query(...),
+    resourceGroup: str = Query(...),
+    foundryName: str = Query(...),
+    projectName: str = Query(...),
+):
+    token = _token(request)
+    sub_id = subscriptionId.removeprefix("/subscriptions/").strip("/").split("/")[0]
+    project = _short_name(projectName)
+
+    account_base = (
+        f"https://management.azure.com/subscriptions/{sub_id}"
+        f"/resourceGroups/{resourceGroup}"
+        f"/providers/Microsoft.CognitiveServices/accounts/{foundryName}"
+    )
+    proj_url = f"{account_base}/projects/{project}?api-version={_API_VERSION}"
+    proj_resp = arm_get(proj_url, token)
+    if not proj_resp.ok:
+        raise HTTPException(status_code=proj_resp.status_code, detail="Could not resolve project endpoint")
+
+    endpoints = proj_resp.json().get("properties", {}).get("endpoints", {})
+    data_plane_base = endpoints.get("AI Foundry API") or next(iter(endpoints.values()), None)
+    if not data_plane_base:
+        raise HTTPException(status_code=404, detail="Could not resolve data plane endpoint")
+
+    try:
+        dp_client = AIProjectClient(endpoint=data_plane_base, credential=DefaultAzureCredential())
+        agents = list(dp_client.agents.list())
+    except Exception as e:
+        logging.warning(f"[tools] AIProjectClient error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+    tool_map: dict[str, list[str]] = {}
+    for agent in agents:
+        agent_name = getattr(agent, "name", None) or str(agent)
+        tools = getattr(agent, "tools", None) or []
+        for t in tools:
+            t_type = t.get("type", str(t)) if isinstance(t, dict) else str(t)
+            tool_map.setdefault(t_type, [])
+            if agent_name not in tool_map[t_type]:
+                tool_map[t_type].append(agent_name)
+
+    return [{"type": t, "agents": names} for t, names in sorted(tool_map.items())]
 
