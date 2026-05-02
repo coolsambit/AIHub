@@ -74,47 +74,6 @@ def list_agents(
     ]
 
 
-@router.get("/{agentName}", summary="Get full details of a single agent, including guardrail assignments")
-def get_agent(
-    agentName: str,
-    request: Request,
-    subscriptionId: str = Query(...),
-    resourceGroup: str = Query(...),
-    foundryName: str = Query(...),
-    projectName: str = Query(...),
-):
-    token = _token(request)
-    sub_id = subscriptionId.removeprefix("/subscriptions/").strip("/").split("/")[0]
-    url = f"{_base(sub_id, resourceGroup, foundryName, projectName)}/applications/{agentName}?api-version={_API_VERSION}"
-    logging.info(f"Agent detail: GET {url}")
-
-    try:
-        response = arm_get(url, token)
-    except Exception as e:
-        logging.error(f"Agent detail error: {e}")
-        raise HTTPException(status_code=500, detail=f"Request error: {e}")
-
-    if not response.ok:
-        raise HTTPException(
-            status_code=response.status_code,
-            detail=f"Agent API {response.status_code}: {response.text[:500]}",
-        )
-
-    item = response.json() if response.content else {}
-    props = item.get("properties", {})
-    return {
-        "name": item.get("name"),
-        "id": item.get("id"),
-        "displayName": props.get("displayName"),
-        "baseUrl": props.get("baseUrl"),
-        "isEnabled": props.get("isEnabled"),
-        "provisioningState": props.get("provisioningState"),
-        "guardrailConfiguration": props.get("guardrailConfiguration"),
-        "guardrailId": props.get("guardrailId"),
-        "properties": props,  # full properties so no data is hidden
-    }
-
-
 @router.get("/tools", summary="Aggregate tool types in use across all agents in a project")
 def list_tools(
     request: Request,
@@ -161,3 +120,43 @@ def list_tools(
 
     return [{"type": t, "agents": names} for t, names in sorted(tool_map.items())]
 
+
+@router.get("/{agentName}", summary="Get full details of a single agent, including guardrail assignments")
+def get_agent(
+    agentName: str,
+    request: Request,
+    subscriptionId: str = Query(...),
+    resourceGroup: str = Query(...),
+    foundryName: str = Query(...),
+    projectName: str = Query(...),
+):
+    token = _token(request)
+    sub_id = subscriptionId.removeprefix("/subscriptions/").strip("/").split("/")[0]
+    url = f"{_base(sub_id, resourceGroup, foundryName, projectName)}/applications/{agentName}?api-version={_API_VERSION}"
+    logging.info(f"Agent detail: GET {url}")
+
+    try:
+        response = arm_get(url, token)
+    except Exception as e:
+        logging.error(f"Agent detail error: {e}")
+        raise HTTPException(status_code=500, detail=f"Request error: {e}")
+
+    if not response.ok:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=f"Agent API {response.status_code}: {response.text[:500]}",
+        )
+
+    item = response.json() if response.content else {}
+    props = item.get("properties", {})
+    return {
+        "name": item.get("name"),
+        "id": item.get("id"),
+        "displayName": props.get("displayName"),
+        "baseUrl": props.get("baseUrl"),
+        "isEnabled": props.get("isEnabled"),
+        "provisioningState": props.get("provisioningState"),
+        "guardrailConfiguration": props.get("guardrailConfiguration"),
+        "guardrailId": props.get("guardrailId"),
+        "properties": props,
+    }
