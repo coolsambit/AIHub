@@ -108,12 +108,18 @@ def list_tools(
         logging.warning(f"[tools] AIProjectClient error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+    logging.info(f"[tools] Got {len(agents)} agents")
+
     tool_map: dict[str, list[str]] = {}
     for agent in agents:
-        agent_name = getattr(agent, "name", None) or str(agent)
-        tools = getattr(agent, "tools", None) or []
-        for t in tools:
-            t_type = t.get("type", str(t)) if isinstance(t, dict) else str(t)
+        agent_name = getattr(agent, "name", None) or getattr(agent, "id", None) or str(agent)
+        raw_tools = getattr(agent, "tools", None) or []
+        logging.info(f"[tools] Agent '{agent_name}' tools: {raw_tools}")
+        for t in raw_tools:
+            if isinstance(t, dict):
+                t_type = t.get("type", str(t))
+            else:
+                t_type = getattr(t, "type", type(t).__name__)
             tool_map.setdefault(t_type, [])
             if agent_name not in tool_map[t_type]:
                 tool_map[t_type].append(agent_name)
