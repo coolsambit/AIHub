@@ -22,6 +22,7 @@ def list_models(
     subscriptionId: str = Query(..., description="Azure Subscription ID"),
     resourceGroupName: str = Query(..., description="Azure Resource Group Name"),
     accountName: str = Query(..., description="Cognitive Services Account Name (Foundry resource)"),
+    projectName: str = Query(None, description="Optional project name for project-scoped deployments"),
     api_version: str = Query("2025-06-01", alias="api-version", description="API version (default: 2025-06-01)")
 ):
     """
@@ -46,10 +47,17 @@ def list_models(
     else:
         token = DefaultAzureCredential().get_token("https://management.azure.com/.default").token
 
-    url = (
-        f"https://management.azure.com/subscriptions/{sub_id}/resourceGroups/{resourceGroupName}/"
-        f"providers/Microsoft.CognitiveServices/accounts/{accountName}/deployments?api-version={api_version}"
-    )
+    if projectName:
+        url = (
+            f"https://management.azure.com/subscriptions/{sub_id}/resourceGroups/{resourceGroupName}/"
+            f"providers/Microsoft.CognitiveServices/accounts/{accountName}/projects/{projectName}"
+            f"/deployments?api-version={api_version}"
+        )
+    else:
+        url = (
+            f"https://management.azure.com/subscriptions/{sub_id}/resourceGroups/{resourceGroupName}/"
+            f"providers/Microsoft.CognitiveServices/accounts/{accountName}/deployments?api-version={api_version}"
+        )
     try:
         response = arm_get(url, token)
         response.raise_for_status()

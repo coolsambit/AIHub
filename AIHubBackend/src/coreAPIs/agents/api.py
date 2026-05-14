@@ -90,6 +90,17 @@ def list_agents(
     return result
 
 
+def _to_dict(t) -> dict:
+    """Normalise a tool object (SDK class or plain dict) to a plain Python dict."""
+    if isinstance(t, dict):
+        return t
+    if hasattr(t, "as_dict"):
+        return t.as_dict()
+    if hasattr(t, "__dict__"):
+        return {k: v for k, v in vars(t).items() if not k.startswith("_")}
+    return {}
+
+
 def _tool_label(t: dict) -> str:
     """For connection-backed tools show the connection name; otherwise show the type."""
     for key in ("azure_ai_search", "bing_grounding", "sharepoint_grounding", "azure_function"):
@@ -158,7 +169,8 @@ def list_tools(
             raw_tools = defn.get("tools") or []
             logging.info(f"[tools] Agent '{name}' raw_tools: {raw_tools}")
             for t in raw_tools:
-                label = _tool_label(t) if isinstance(t, dict) else str(t)
+                t_dict = _to_dict(t)
+                label = _tool_label(t_dict)
                 tool_map.setdefault(label, [])
                 if name not in tool_map[label]:
                     tool_map[label].append(name)

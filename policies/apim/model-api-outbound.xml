@@ -1,0 +1,38 @@
+<!--
+  PASTE INTO: APIM Portal → your model API → All Operations → Outbound processing
+  Add this block inside the existing <outbound><base /></outbound> section,
+  AFTER the <base /> tag.
+
+  Do this for EVERY model API (gpt-4o, gpt-4o-mini, text-embedding-3-large, etc.)
+  Change the "limit" value below to match the token-quota you set in azure-openai-token-limit.
+  Both values must match.
+-->
+<choose>
+    <when condition="@(context.Response.StatusCode == 200)">
+        <set-variable name="responseBody"
+            value="@(context.Response.Body.As&lt;JObject&gt;(preserveContent: true))" />
+        <set-variable name="tokensUsed" value="@{
+            var body = (JObject)context.Variables[&quot;responseBody&quot;];
+            return body[&quot;usage&quot;]?[&quot;total_tokens&quot;]?.Value&lt;int&gt;() ?? 0;
+        }" />
+        <cache-lookup-value
+            key="@($&quot;usage|{context.Subscription.Id}&quot;)"
+            variable-name="existingUsage" />
+        <set-variable name="updatedUsage" value="@{
+            var existing = context.Variables.ContainsKey(&quot;existingUsage&quot;)
+                           &amp;&amp; context.Variables[&quot;existingUsage&quot;] != null
+                ? JObject.Parse((string)context.Variables[&quot;existingUsage&quot;])
+                : new JObject();
+            var model = context.Api.Name;
+            if (existing[model] == null) existing[model] = new JObject();
+            var m = (JObject)existing[model];
+            m[&quot;used&quot;]  = (m[&quot;used&quot;]?.Value&lt;int&gt;() ?? 0) + (int)context.Variables[&quot;tokensUsed&quot;];
+            m[&quot;limit&quot;] = 5000000; // ← set this to match your token-quota value
+            return existing.ToString();
+        }" />
+        <cache-store-value
+            key="@($&quot;usage|{context.Subscription.Id}&quot;)"
+            value="@((string)context.Variables[&quot;updatedUsage&quot;])"
+            duration="2592000" />
+    </when>
+</choose>

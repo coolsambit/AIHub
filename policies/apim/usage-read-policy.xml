@@ -1,0 +1,44 @@
+<!--
+  CREATE IN APIM:
+    1. New API named "Internal Usage API"  (no backend required)
+    2. Add GET operation  path: /internal/usage
+    3. Paste this as the full policy for that operation
+    4. Require subscription key — use your master/admin key to call it
+-->
+<policies>
+    <inbound>
+        <base />
+        <cache-lookup-value
+            key="@($&quot;usage|{context.Request.OriginalUrl.Query.GetValueOrDefault(&quot;subscriptionId&quot;, &quot;&quot;)}&quot;)"
+            variable-name="usageData" />
+        <return-response>
+            <set-status code="200" />
+            <set-header name="Content-Type" exists-action="override">
+                <value>application/json</value>
+            </set-header>
+            <set-body>@{
+                var subId = context.Request.OriginalUrl.Query.GetValueOrDefault(&quot;subscriptionId&quot;, &quot;&quot;);
+                var raw   = context.Variables.ContainsKey(&quot;usageData&quot;) &amp;&amp; context.Variables[&quot;usageData&quot;] != null
+                    ? (string)context.Variables[&quot;usageData&quot;]
+                    : &quot;{}&quot;;
+                var data = JObject.Parse(raw);
+                var arr  = new JArray();
+                foreach (var prop in data.Properties()) {
+                    var m = (JObject)prop.Value;
+                    arr.Add(new JObject(
+                        new JProperty(&quot;model&quot;,      prop.Name),
+                        new JProperty(&quot;tokensUsed&quot;, m[&quot;used&quot;]?.Value&lt;long&gt;()  ?? 0),
+                        new JProperty(&quot;tokenLimit&quot;, m[&quot;limit&quot;]?.Value&lt;long&gt;() ?? 0)
+                    ));
+                }
+                return new JObject(
+                    new JProperty(&quot;subscriptionId&quot;, subId),
+                    new JProperty(&quot;models&quot;, arr)
+                ).ToString();
+            }</set-body>
+        </return-response>
+    </inbound>
+    <backend><base /></backend>
+    <outbound><base /></outbound>
+    <on-error><base /></on-error>
+</policies>

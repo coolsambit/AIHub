@@ -1,12 +1,14 @@
 import { apiUrl } from './config';
 
-export async function fetchModels(accessToken, subscriptionId, resourceGroupName, accountName, apiVersion = "2025-06-01") {
+export async function fetchModels(accessToken, subscriptionId, resourceGroupName, accountName, apiVersion = "2025-06-01", projectName = null) {
   // Remove '/subscriptions/' prefix if present
   let cleanSubscriptionId = subscriptionId;
   if (typeof cleanSubscriptionId === 'string' && cleanSubscriptionId.startsWith('/subscriptions/')) {
     cleanSubscriptionId = cleanSubscriptionId.replace('/subscriptions/', '');
   }
-  const url = apiUrl(`/api/models/?subscriptionId=${encodeURIComponent(cleanSubscriptionId)}&resourceGroupName=${encodeURIComponent(resourceGroupName)}&accountName=${encodeURIComponent(accountName)}&api-version=${encodeURIComponent(apiVersion)}`);
+  let qs = `/api/models/?subscriptionId=${encodeURIComponent(cleanSubscriptionId)}&resourceGroupName=${encodeURIComponent(resourceGroupName)}&accountName=${encodeURIComponent(accountName)}&api-version=${encodeURIComponent(apiVersion)}`;
+  if (projectName) qs += `&projectName=${encodeURIComponent(projectName)}`;
+  const url = apiUrl(qs);
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,

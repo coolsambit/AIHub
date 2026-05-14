@@ -1,5 +1,4 @@
-﻿import React, { useState } from 'react';
-import WelcomeBanner from "./WelcomeBanner";
+import React, { useState } from 'react';
 import AgentDetails from './features/subscriptions-auth/AgentDetails';
 import ModelGuardrails from './features/subscriptions-auth/ModelGuardrails';
 import ConnectionsPanel from './features/subscriptions-auth/ConnectionsPanel';
@@ -118,8 +117,7 @@ const SubscriptionDashboard = ({
 
 	return (
 		<>
-			<div className="w-full mt-4 mb-8">
-				<WelcomeBanner title="" subtitle="">
+			<div className="w-full mt-4 mb-8 bg-gradient-to-r from-blue-50 to-white border border-blue-100 rounded-xl shadow-sm p-4">
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-left">
 
 						{/* Azure Policy & Governance */}
@@ -129,7 +127,7 @@ const SubscriptionDashboard = ({
 								<p className="text-xs font-bold text-blue-900">Azure Policy &amp; Governance</p>
 							</div>
 							<p className="text-xs text-gray-600">Azure Policy defines, assigns, and audits rules across resources to enforce organisational standards. Policies can restrict allowed SKUs, require tags, enforce network rules, and ensure compliance at scale.</p>
-							<a href="https://learn.microsoft.com/en-us/azure/governance/policy/overview" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more →</a>
+							<a href="https://learn.microsoft.com/en-us/azure/governance/policy/overview" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more ?</a>
 						</div>
 
 						{/* VNet Integration */}
@@ -139,7 +137,7 @@ const SubscriptionDashboard = ({
 								<p className="text-xs font-bold text-blue-900">VNet Integration</p>
 							</div>
 							<p className="text-xs text-gray-600">Azure AI Foundry supports Virtual Network integration to keep all traffic within your private network. Configure private endpoints and outbound rules to prevent public internet exposure.</p>
-							<a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/configure-private-link" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more →</a>
+							<a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/configure-private-link" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more ?</a>
 						</div>
 
 						{/* Permissions (RBAC) */}
@@ -148,8 +146,8 @@ const SubscriptionDashboard = ({
 								<svg className="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m9-5a4 4 0 1 0-8 0 4 4 0 0 0 8 0z"/></svg>
 								<p className="text-xs font-bold text-blue-900">Permissions (RBAC)</p>
 							</div>
-							<p className="text-xs text-gray-600">Permissions are assigned at subscription, resource group, or resource scope and inherit downward. Use least-privilege — grant only the access required for the task at hand.</p>
-							<a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/overview" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more →</a>
+							<p className="text-xs text-gray-600">Permissions are assigned at subscription, resource group, or resource scope and inherit downward. Use least-privilege � grant only the access required for the task at hand.</p>
+							<a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/overview" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more ?</a>
 						</div>
 
 						{/* AI Roles */}
@@ -161,7 +159,7 @@ const SubscriptionDashboard = ({
 							<div className="flex flex-col gap-1.5">
 								<div>
 									<p className="text-xs font-semibold text-gray-700">CS OpenAI Contributor</p>
-									<p className="text-xs text-gray-500">Full access — fine-tune, deploy, and generate text.</p>
+									<p className="text-xs text-gray-500">Full access � fine-tune, deploy, and generate text.</p>
 								</div>
 								<div>
 									<p className="text-xs font-semibold text-gray-700">CS OpenAI User</p>
@@ -172,12 +170,11 @@ const SubscriptionDashboard = ({
 									<p className="text-xs text-gray-500">Read and list keys of Cognitive Services resources.</p>
 								</div>
 							</div>
-							<a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-ai-foundry" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more →</a>
+							<a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-ai-foundry" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-medium mt-auto pt-1">Learn more ?</a>
 						</div>
 
 					</div>
-				</WelcomeBanner>
-			</div>
+				</div>
 			<div className="space-y-8">
 
 				{error && (
@@ -274,17 +271,17 @@ const SubscriptionDashboard = ({
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">AI Foundry Endpoint</label>
-							<input type="text" value={displayFoundryEndpoint} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" placeholder="—" />
+							<input type="text" value={displayFoundryEndpoint} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" placeholder="�" />
 						</div>
 
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">OpenAI Endpoint</label>
-							<input type="text" value={displayOpenAIEndpoint} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" placeholder="—" />
+							<input type="text" value={displayOpenAIEndpoint} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" placeholder="�" />
 						</div>
 
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">Project Endpoint</label>
-							<input type="text" value={displayProjectEndpoint} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" placeholder="—" />
+							<input type="text" value={displayProjectEndpoint} readOnly className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" placeholder="�" />
 						</div>
 					</div>
 
@@ -302,7 +299,7 @@ const SubscriptionDashboard = ({
 								</div>
 							) : (
 								<div className="flex items-center gap-2">
-									<input type="password" value={apiKey1} readOnly placeholder={selectedFoundry ? '—' : ''} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+									<input type="password" value={apiKey1} readOnly placeholder={selectedFoundry ? '�' : ''} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
 									<button onClick={() => navigator.clipboard.writeText(apiKey1)} disabled={!apiKey1} title="Copy API Key 1" className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
 										<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
 									</button>
@@ -313,10 +310,10 @@ const SubscriptionDashboard = ({
 						<div className="space-y-2">
 							<label className="block text-sm font-semibold text-gray-700">API Key 2</label>
 							{keysError ? (
-								<div className="text-xs text-gray-400 italic py-2.5">—</div>
+								<div className="text-xs text-gray-400 italic py-2.5">�</div>
 							) : (
 								<div className="flex items-center gap-2">
-									<input type="password" value={apiKey2} readOnly placeholder={selectedFoundry ? '—' : ''} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
+									<input type="password" value={apiKey2} readOnly placeholder={selectedFoundry ? '�' : ''} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700" />
 									<button onClick={() => navigator.clipboard.writeText(apiKey2)} disabled={!apiKey2} title="Copy API Key 2" className="shrink-0 p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
 										<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
 									</button>
@@ -333,7 +330,7 @@ const SubscriptionDashboard = ({
 
 				</div>
 
-				{/* Dashboard Grid — 2×2 */}
+				{/* Dashboard Grid � 2�2 */}
 				<div className="grid grid-cols-2 gap-6 mt-2">
 
 					{/* Model Information Panel */}
@@ -344,7 +341,7 @@ const SubscriptionDashboard = ({
 						</h3>
 
 						<div className="flex gap-4 min-h-48">
-							{/* Pooled Models — 50% */}
+							{/* Pooled Models � 50% */}
 							<div className="w-1/2 shrink-0 flex flex-col">
 								<h4 className="text-sm font-semibold text-blue-700 mb-2">Pooled Models</h4>
 								<div className="flex flex-col gap-2">
@@ -375,7 +372,7 @@ const SubscriptionDashboard = ({
 							{/* Divider */}
 							<div className="w-px bg-blue-200 shrink-0" />
 
-							{/* Guardrails — 50% */}
+							{/* Guardrails � 50% */}
 							<div className="w-1/2 min-w-0 overflow-y-auto">
 								<ModelGuardrails model={selectedModel} guardrails={modelGuardrails} isGuardrailsLoading={isModelGuardrailsLoading} />
 							</div>
@@ -390,7 +387,7 @@ const SubscriptionDashboard = ({
 						</h3>
 
 						<div className="flex gap-4 min-h-48">
-							{/* Agent List — 20% */}
+							{/* Agent List � 20% */}
 							<div className="w-1/5 shrink-0 flex flex-col">
 								<h4 className="text-sm font-semibold text-purple-700 mb-2">Agents</h4>
 								<div className="flex flex-col gap-2">
@@ -421,7 +418,7 @@ const SubscriptionDashboard = ({
 							{/* Divider */}
 							<div className="w-px bg-purple-200 shrink-0" />
 
-							{/* Details — 80% */}
+							{/* Details � 80% */}
 							<div className="flex-1 min-w-0">
 								<AgentDetails agent={selectedAgent} guardrails={guardrails} isGuardrailsLoading={isGuardrailsLoading} />
 							</div>
