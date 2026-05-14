@@ -10,6 +10,7 @@ from coreAPIs.agents.api import router as agents_router
 from coreAPIs.connections.api import router as connections_router
 from coreAPIs.keys.api import router as keys_router
 from coreAPIs.Roles.api import router as cs_openai_roles_router
+from coreAPIs.inspect.api import router as inspect_router
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -36,6 +37,7 @@ app.include_router(agents_router, prefix="/agents", tags=["agents"])
 app.include_router(connections_router, prefix="/connections", tags=["connections"])
 app.include_router(keys_router, prefix="/keys", tags=["keys"])
 app.include_router(cs_openai_roles_router, prefix="/Roles", tags=["Roles"])
+app.include_router(inspect_router, prefix="/inspect", tags=["inspect"])
 
 
 if __name__ == "__main__":

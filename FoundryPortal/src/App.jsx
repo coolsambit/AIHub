@@ -191,23 +191,45 @@ function App() {
 
 	// 5. Load Agents when project changes
 	useEffect(() => {
-		if (!selectedFoundry || !foundries.length) { setAgents([]); return; }
+		console.log('[agents] effect fired — selectedProject:', selectedProject, '| selectedFoundry:', selectedFoundry);
+
+		if (!selectedFoundry || !foundries.length) {
+			console.log('[agents] skipping — no foundry or foundries not loaded yet');
+			setAgents([]); return;
+		}
+
 		const foundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
 		const projectData = projects.find(p => (p.id || p.name) === selectedProject);
 		const projectName = projectData?.name || selectedProject?.trim().split('/').filter(Boolean).pop() || '';
+
+		console.log('[agents] foundryData:', foundryData);
+		console.log('[agents] projectData:', projectData);
+		console.log('[agents] resolved projectName:', projectName);
+		console.log('[agents] resource_group:', foundryData?.resource_group);
 
 		if (selectedProject && foundryData?.resource_group) {
 			setIsAgentsLoading(true);
 			setAgents([]);
 			setInventoryError(null);
 			getAccessToken().then(token => {
-				if (!token) { setIsAgentsLoading(false); return; }
+				if (!token) {
+					console.log('[agents] no token — aborting');
+					setIsAgentsLoading(false); return;
+				}
+				console.log('[agents] calling fetchAgents with projectName:', projectName);
 				fetchAgents(token, selectedSubscription, foundryData.resource_group, selectedFoundry, projectName)
-					.then(data => setAgents(Array.isArray(data) ? data : []))
-					.catch(err => setInventoryError(err.message))
+					.then(data => {
+						console.log('[agents] response:', data);
+						setAgents(Array.isArray(data) ? data : []);
+					})
+					.catch(err => {
+						console.error('[agents] fetch error:', err.message);
+						setInventoryError(err.message);
+					})
 					.finally(() => setIsAgentsLoading(false));
 			});
 		} else {
+			console.log('[agents] skipping fetch — selectedProject or resource_group missing');
 			setAgents([]);
 		}
 	}, [selectedProject, selectedFoundry, foundries, projects]);

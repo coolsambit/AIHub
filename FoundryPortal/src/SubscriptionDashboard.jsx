@@ -1,9 +1,11 @@
 ﻿import React, { useState } from 'react';
 import WelcomeBanner from "./WelcomeBanner";
-import ModelDetails from './features/subscriptions-auth/ModelDetails';
 import AgentDetails from './features/subscriptions-auth/AgentDetails';
+import ModelGuardrails from './features/subscriptions-auth/ModelGuardrails';
+import ConnectionsPanel from './features/subscriptions-auth/ConnectionsPanel';
+import ToolsPanel from './features/subscriptions-auth/ToolsPanel';
 import FoundrySnowflakeSpinner from './FoundrySnowflakeSpinner';
-import { fetchAgentGuardrails } from './api/AgentsApi';
+import { fetchAgentGuardrails, fetchModelGuardrails, fetchConnections, fetchTools } from './api/AgentsApi';
 
 const SubscriptionDashboard = ({
 	isAuthenticated,
@@ -17,11 +19,39 @@ const SubscriptionDashboard = ({
 	getAccessToken,
 }) => {
 	const [selectedModel, setSelectedModel] = useState(null);
+	const [modelGuardrails, setModelGuardrails] = useState(null);
+	const [isModelGuardrailsLoading, setIsModelGuardrailsLoading] = useState(false);
 	const [selectedAgent, setSelectedAgent] = useState(null);
 	const [guardrails, setGuardrails] = useState(null);
 	const [isGuardrailsLoading, setIsGuardrailsLoading] = useState(false);
+	const [connections, setConnections] = useState(null);
+	const [isConnectionsLoading, setIsConnectionsLoading] = useState(false);
+	const [connectionsError, setConnectionsError] = useState(null);
+	const [tools, setTools] = useState(null);
+	const [isToolsLoading, setIsToolsLoading] = useState(false);
+	const [toolsError, setToolsError] = useState(null);
 
 	const shortName = (armIdOrName) => armIdOrName?.trim().split('/').filter(Boolean).pop() ?? '';
+
+	const handleModelClick = async (model) => {
+		setSelectedModel(model);
+		setModelGuardrails(null);
+
+		const foundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
+		if (!foundryData?.resource_group || !model.name) return;
+
+		setIsModelGuardrailsLoading(true);
+		try {
+			const token = await getAccessToken();
+			if (!token) return;
+			const data = await fetchModelGuardrails(token, selectedSubscription, foundryData.resource_group, selectedFoundry, model.name);
+			setModelGuardrails(data);
+		} catch (e) {
+			setModelGuardrails({ error: e.message });
+		} finally {
+			setIsModelGuardrailsLoading(false);
+		}
+	};
 
 	const handleAgentClick = async (agent) => {
 		setSelectedAgent(agent);
@@ -44,6 +74,33 @@ const SubscriptionDashboard = ({
 			setIsGuardrailsLoading(false);
 		}
 	};
+
+	const loadProjectData = React.useCallback(async (project) => {
+		const foundryData = foundries.find(f => String(f.name) === String(selectedFoundry));
+		const projectData = projects.find(p => (p.id || p.name) === project);
+		const projectName = projectData?.name || shortName(project);
+		if (!foundryData?.resource_group || !projectName) return;
+
+		const token = await getAccessToken();
+		if (!token) return;
+
+		setConnections(null); setConnectionsError(null); setIsConnectionsLoading(true);
+		setTools(null);       setToolsError(null);       setIsToolsLoading(true);
+
+		fetchConnections(token, selectedSubscription, foundryData.resource_group, selectedFoundry, projectName)
+			.then(data => setConnections(data))
+			.catch(e => setConnectionsError(e.message))
+			.finally(() => setIsConnectionsLoading(false));
+
+		fetchTools(token, selectedSubscription, foundryData.resource_group, selectedFoundry, projectName)
+			.then(data => setTools(data))
+			.catch(e => setToolsError(e.message))
+			.finally(() => setIsToolsLoading(false));
+	}, [foundries, projects, selectedFoundry, selectedSubscription, getAccessToken]);
+
+	React.useEffect(() => {
+		if (selectedProject) loadProjectData(selectedProject);
+	}, [selectedProject]);
 
 	const locationMap = {
 		'Foundry North America': 'East US',
@@ -287,8 +344,8 @@ const SubscriptionDashboard = ({
 						</h3>
 
 						<div className="flex gap-4 min-h-48">
-							{/* Pooled Models — 20% */}
-							<div className="w-1/5 shrink-0 flex flex-col">
+							{/* Pooled Models — 50% */}
+							<div className="w-1/2 shrink-0 flex flex-col">
 								<h4 className="text-sm font-semibold text-blue-700 mb-2">Pooled Models</h4>
 								<div className="flex flex-col gap-2">
 									{!selectedFoundry ? (
@@ -301,7 +358,7 @@ const SubscriptionDashboard = ({
 										models.filter(model => model.name).map(model => (
 											<button
 												key={model.id}
-												onClick={() => setSelectedModel(model)}
+												onClick={() => handleModelClick(model)}
 												className={`w-full text-left rounded-lg px-3 py-1.5 text-xs font-semibold border transition
 													${selectedModel?.id === model.id
 														? 'bg-blue-600 text-white border-blue-600 shadow'
@@ -318,10 +375,9 @@ const SubscriptionDashboard = ({
 							{/* Divider */}
 							<div className="w-px bg-blue-200 shrink-0" />
 
-							{/* Details — 80% */}
-							<div className="flex-1 min-w-0">
-								<h4 className="text-sm font-semibold text-blue-700 mb-3">Details</h4>
-								<ModelDetails model={selectedModel} />
+							{/* Guardrails — 50% */}
+							<div className="w-1/2 min-w-0 overflow-y-auto">
+								<ModelGuardrails model={selectedModel} guardrails={modelGuardrails} isGuardrailsLoading={isModelGuardrailsLoading} />
 							</div>
 						</div>
 					</div>
@@ -367,7 +423,6 @@ const SubscriptionDashboard = ({
 
 							{/* Details — 80% */}
 							<div className="flex-1 min-w-0">
-								<h4 className="text-sm font-semibold text-purple-700 mb-3">Details</h4>
 								<AgentDetails agent={selectedAgent} guardrails={guardrails} isGuardrailsLoading={isGuardrailsLoading} />
 							</div>
 						</div>
@@ -376,10 +431,11 @@ const SubscriptionDashboard = ({
 					{/* Tools Panel */}
 					<div className="bg-gradient-to-br from-white via-yellow-50 to-yellow-100 p-6 rounded-2xl shadow-lg border border-yellow-200">
 						<h3 className="text-lg font-bold text-yellow-900 mb-4 flex items-center gap-2">
-							<svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/><path strokeLinecap="round" strokeLinejoin="round" d="M9 9h6v6H9z" /></svg>
+							<svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
 							Tools
+							{isToolsLoading && <FoundrySnowflakeSpinner size={14} spinning />}
 						</h3>
-						<div className="h-16" />
+						<ToolsPanel tools={tools} isLoading={isToolsLoading} error={toolsError} />
 					</div>
 
 					{/* Connections Panel */}
@@ -387,8 +443,9 @@ const SubscriptionDashboard = ({
 						<h3 className="text-lg font-bold text-teal-900 mb-4 flex items-center gap-2">
 							<svg className="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
 							Connections
+							{isConnectionsLoading && <FoundrySnowflakeSpinner size={14} spinning />}
 						</h3>
-						<div className="h-16" />
+						<ConnectionsPanel connections={connections} isLoading={isConnectionsLoading} error={connectionsError} />
 					</div>
 
 				</div>
