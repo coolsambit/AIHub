@@ -12,12 +12,9 @@ import { fetchAgents } from './api/AgentsApi';
 import Header from './Header';
 import SubscriptionDashboard from './SubscriptionDashboard';
 import ModelDetails from './features/subscriptions-auth/ModelDetails';
+import ModelHub from './features/ModelHub';
 import LoginPage from './LoginPage';
 import Home from './Home';
-
-function ModelManagementPage() {
-	return <div className="max-w-3xl mx-auto mt-8 p-8 bg-white rounded-xl shadow border border-gray-200"><h2 className="text-2xl font-bold mb-4">Model Management</h2><p>Model management features will appear here.</p></div>;
-}
 function AgentManagementPage() {
 	return <div className="max-w-3xl mx-auto mt-8 p-8 bg-white rounded-xl shadow border border-gray-200"><h2 className="text-2xl font-bold mb-4">Agent Management</h2><p>Agent management features will appear here.</p></div>;
 }
@@ -297,11 +294,11 @@ function App() {
 		<div className="min-h-screen bg-gray-50 flex flex-col w-full max-w-full">
 			<Header onSignInClick={handleSignInClick} userRoles={[...subscriptionRoles, ...cognitiveRoles, ...azureAiRoles]} />
 
-			<main className="flex-grow w-full max-w-full px-2 md:px-4 py-4 md:py-8">
+			<main className="flex-grow w-full max-w-full px-2 md:px-4 py-3 md:py-4">
 				<Routes>
 					<Route path="/" element={<Home subscriptionRoles={subscriptionRoles} cognitiveRoles={cognitiveRoles} azureAiRoles={azureAiRoles} />} />
 					<Route path="/inventory" element={<SubscriptionDashboard {...inventoryProps} />} />
-					<Route path="/models" element={<ModelManagementPage />} />
+					<Route path="/models" element={<ModelHub foundries={foundries} selectedSubscription={selectedSubscription} getAccessToken={getAccessToken} />} />
 					<Route path="/agents" element={<AgentManagementPage />} />
 					<Route path="/model/:modelId" element={<ModelDetails />} />
 				</Routes>

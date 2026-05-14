@@ -1,0 +1,49 @@
+<!--
+  ADD TO APIM "Internal Usage API":
+    1. Add DELETE operation  path: /internal/usage
+    2. Paste this as the full policy for that operation
+    Query params:
+      subscriptionId  — APIM subscription ID to reset
+      model           — (optional) specific model name; omit to reset all models for that subscription
+-->
+<policies>
+    <inbound>
+        <base />
+        <set-variable name="subId"
+            value="@(context.Request.OriginalUrl.Query.GetValueOrDefault(&quot;subscriptionId&quot;, &quot;&quot;))" />
+        <set-variable name="model"
+            value="@(context.Request.OriginalUrl.Query.GetValueOrDefault(&quot;model&quot;, &quot;&quot;))" />
+        <choose>
+            <!-- Reset a single model, keep others intact -->
+            <when condition="@((string)context.Variables[&quot;model&quot;] != &quot;&quot;)">
+                <cache-lookup-value
+                    key="@($&quot;usage|{(string)context.Variables[&quot;subId&quot;]}&quot;)"
+                    variable-name="existingUsage" />
+                <set-variable name="updatedUsage" value="@{
+                    var existing = context.Variables.ContainsKey(&quot;existingUsage&quot;)
+                                   &amp;&amp; context.Variables[&quot;existingUsage&quot;] != null
+                        ? JObject.Parse((string)context.Variables[&quot;existingUsage&quot;])
+                        : new JObject();
+                    var m = (string)context.Variables[&quot;model&quot;];
+                    if (existing[m] is JObject mo) mo[&quot;used&quot;] = 0;
+                    return existing.ToString();
+                }" />
+                <cache-store-value
+                    key="@($&quot;usage|{(string)context.Variables[&quot;subId&quot;]}&quot;)"
+                    value="@((string)context.Variables[&quot;updatedUsage&quot;])"
+                    duration="2592000" />
+            </when>
+            <!-- Reset entire subscription -->
+            <otherwise>
+                <cache-remove-value
+                    key="@($&quot;usage|{(string)context.Variables[&quot;subId&quot;]}&quot;)" />
+            </otherwise>
+        </choose>
+        <return-response>
+            <set-status code="204" />
+        </return-response>
+    </inbound>
+    <backend><base /></backend>
+    <outbound><base /></outbound>
+    <on-error><base /></on-error>
+</policies>

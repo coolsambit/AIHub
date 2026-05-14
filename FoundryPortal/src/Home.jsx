@@ -11,27 +11,27 @@ export default function Home({ subscriptionRoles, cognitiveRoles, azureAiRoles }
 
   return (
     <div className="w-full max-w-full">
-      {/* Welcome Banner full-width section */}
-      <div className="w-full max-w-full bg-blue-50 border border-blue-100 rounded-2xl p-2 md:p-3 mb-8 shadow-sm text-left">
+      {/* Welcome Banner */}
+      <div className="w-full max-w-full mb-4">
         <WelcomeBanner>
           {isAuthenticated && (
-            <div className="flex flex-col md:flex-row gap-2 mt-4 justify-center items-center">
+            <>
               {subRoles.length > 0 && (
-                <div className="bg-blue-100 border border-blue-300 rounded-xl px-4 py-2 text-blue-900 text-sm font-semibold shadow-sm">
-                  Subscription Roles: {subRoles.join(", ")}
-                </div>
+                <span className="bg-blue-100 border border-blue-300 rounded-lg px-3 py-1 text-blue-900 text-xs font-semibold">
+                  {subRoles.join(", ")}
+                </span>
               )}
               {cogRoles.length > 0 && (
-                <div className="bg-teal-100 border border-teal-300 rounded-xl px-4 py-2 text-teal-900 text-sm font-semibold shadow-sm">
-                  Cognitive Roles: {cogRoles.join(", ")}
-                </div>
+                <span className="bg-teal-100 border border-teal-300 rounded-lg px-3 py-1 text-teal-900 text-xs font-semibold">
+                  {cogRoles.join(", ")}
+                </span>
               )}
               {aiRoles.length > 0 && (
-                <div className="bg-yellow-100 border border-yellow-300 rounded-xl px-4 py-2 text-yellow-900 text-sm font-semibold shadow-sm">
-                  Azure AI Roles: {aiRoles.join(", ")}
-                </div>
+                <span className="bg-yellow-100 border border-yellow-300 rounded-lg px-3 py-1 text-yellow-900 text-xs font-semibold">
+                  {aiRoles.join(", ")}
+                </span>
               )}
-            </div>
+            </>
           )}
         </WelcomeBanner>
       </div>
@@ -46,7 +46,7 @@ export default function Home({ subscriptionRoles, cognitiveRoles, azureAiRoles }
             <div className="flex flex-col gap-3">
               {/* Published Agents */}
               <div className="flex flex-col items-start gap-1 bg-teal-50 border border-teal-100 rounded-xl p-2 shadow-sm">
-                <span className="mt-0.5"><svg className="w-7 h-7 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="#bbf7d0"/><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8M12 8v8" /></svg></span>
+                <span className="mt-0.5"><svg className="w-7 h-7 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="#bbf7d0"/></svg></span>
                 <h4 className="text-base font-semibold">Published Agents</h4>
                 <p className="text-gray-700 text-sm">Agents that are live and available for use in foundry. Agents that can be published to websites including Teams. 
                   These have passed all required checks and are ready for production. They can either define tools in code 
@@ -54,7 +54,7 @@ export default function Home({ subscriptionRoles, cognitiveRoles, azureAiRoles }
               </div>
               {/* Unpublished Agents */}
               <div className="flex flex-col items-start gap-1 bg-teal-50 border border-teal-100 rounded-xl p-2 shadow-sm">
-                <span className="mt-0.5"><svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="#f3f4f6"/><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8M12 8v8" /></svg></span>
+                <span className="mt-0.5"><svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="#f3f4f6"/></svg></span>
                 <h4 className="text-base font-semibold">Unpublished Agents</h4>
                 <p className="text-gray-700 text-sm">Agents that are in development or review. These are not yet available for general use. An Admin can play with these agents and test the models with zero code written</p>
               </div>
@@ -70,13 +70,13 @@ export default function Home({ subscriptionRoles, cognitiveRoles, azureAiRoles }
             <div className="flex flex-col gap-3">
               {/* Custom Agents */}
               <div className="flex flex-col items-start gap-1 bg-teal-50 border border-teal-100 rounded-xl p-2 shadow-sm">
-                <span className="mt-0.5"><svg className="w-7 h-7 text-indigo-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="#e0e7ff"/><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8M12 8v8" /></svg></span>
+                <span className="mt-0.5"><svg className="w-7 h-7 text-indigo-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="#e0e7ff"/></svg></span>
                 <h4 className="text-base font-semibold">Custom Agents</h4>
                 <p className="text-gray-700 text-sm">Agents that are custom-built for your organization’s unique needs. These can be tailored for specific workflows, integrations, or business processes. Custom agents can be hosted on a variety of Azure runtimes, including <span className='font-semibold'>Azure Function Apps</span> for event-driven workloads, <span className='font-semibold'>Azure Container Apps</span> for scalable microservices, or <span className='font-semibold'>Azure Kubernetes Service (AKS)</span> for advanced orchestration and enterprise scenarios.</p>
               </div>
               {/* Marketplace Agents */}
               <div className="flex flex-col items-start gap-1 bg-teal-50 border border-teal-100 rounded-xl p-2 shadow-sm">
-                <span className="mt-0.5"><svg className="w-7 h-7 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#fef9c3"/><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8M12 8v8" /></svg></span>
+                <span className="mt-0.5"><svg className="w-7 h-7 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#fef9c3"/></svg></span>
               
                  <h4 className="text-base font-semibold">Marketplace Agents <a href="https://azuremarketplace.microsoft.com/en-us/marketplace/apps?filters=ai-machine-learning" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-xs font-normal ml-2">Learn more</a></h4>
                  <p className="text-gray-700 text-sm">Agents available from third-party vendors or the marketplace. These agents can be integrated into your environment if approved by your organization.</p>
@@ -133,7 +133,7 @@ export default function Home({ subscriptionRoles, cognitiveRoles, azureAiRoles }
             <div className="flex flex-col gap-2">
               <span className="text-xs font-bold uppercase tracking-wide text-orange-500">Open Source</span>
               <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-orange-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fed7aa"/><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8M12 8v8" /></svg>
+                <svg className="w-5 h-5 text-orange-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fed7aa"/></svg>
                 <a href="https://www.langchain.com/" target="_blank" rel="noopener noreferrer" className="font-bold text-orange-700 hover:underline">LangChain</a>
               </div>
               <p className="text-sm text-gray-600">Popular Python/JS framework for building LLM-powered applications and agentic workflows. Provides chains, tools, memory, and integrations for rapid prototyping.</p>
@@ -210,7 +210,7 @@ export default function Home({ subscriptionRoles, cognitiveRoles, azureAiRoles }
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
           {/* MaaS (Model as a Service) with OpenAI Models and Cognitive Services nested as text */}
           <div className="flex flex-col items-start gap-1 bg-white border border-blue-100 rounded-xl p-2 shadow-sm col-span-1 md:col-span-2">
-            <span className="mt-1"><svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#bbf7d0"/><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8M12 8v8" /></svg></span>
+            <span className="mt-1"><svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#bbf7d0"/></svg></span>
             <h3 className="text-lg font-semibold">(1) MaaS (Model as a Service) <a href="https://azure.microsoft.com/en-us/products/ai-services/openai-service" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm ml-2">Learn more</a></h3>
             <p className="text-gray-700 text-sm mb-2">Model as a Service (MaaS) is a cloud-based approach where AI/ML models are hosted and served via APIs. Users can access, deploy, and scale models without managing the underlying infrastructure. OpenAI, Azure OpenAI, Cognitive Services, and Foundry all provide MaaS, handling hosting, scaling, and monitoring for you.</p>
             <div className="ml-4 mt-1 flex flex-col gap-2 w-full">
@@ -233,13 +233,13 @@ export default function Home({ subscriptionRoles, cognitiveRoles, azureAiRoles }
           </div>
           {/* Microsoft Foundry Models */}
           <div className="flex flex-col items-start gap-1 bg-white border border-blue-100 rounded-xl p-2 shadow-sm">
-            <span className="mt-1"><svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#ede9fe"/><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8M12 8v8" /></svg></span>
+            <span className="mt-1"><svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#ede9fe"/></svg></span>
             <h3 className="text-lg font-semibold">(2) Microsoft Foundry Models <a href="https://learn.microsoft.com/en-us/fabric/ai-services/foundry/overview" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm ml-2">Learn more</a></h3>
             <p className="text-gray-700 text-sm">Foundry models are AI models hosted and managed within Microsoft’s Foundry platform. Foundry provides a secure, enterprise-grade environment for deploying, evaluating, and managing both Microsoft and custom models, with features like agent orchestration, evaluation, and integration with Microsoft’s cloud ecosystem. Foundry can also include approved marketplace models.</p>
           </div>
           {/* Marketplace Models */}
           <div className="flex flex-col items-start gap-1 bg-white border border-blue-100 rounded-xl p-2 shadow-sm">
-            <span className="mt-1"><svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#fef9c3"/><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8M12 8v8" /></svg></span>
+            <span className="mt-1"><svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#fef9c3"/></svg></span>
             <h3 className="text-lg font-semibold">(3) Marketplace Models <a href="https://azuremarketplace.microsoft.com/en-us/marketplace/apps?filters=ai-machine-learning" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm ml-2">Learn more</a></h3>
             <p className="text-gray-700 text-sm">Marketplace models are AI models published by third parties or independent vendors, often available through platforms like Azure Marketplace or Hugging Face Hub. Foundry can support marketplace models if they are approved and integrated into your organization’s Foundry environment.</p>
           </div>
