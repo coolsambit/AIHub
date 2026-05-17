@@ -4,3 +4,4 @@ pydantic
 requests
 azure-functions==1.21.3
 azure-identity
+azure-ai-projects
