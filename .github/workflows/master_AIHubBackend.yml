@@ -3,6 +3,7 @@ name: Deploy Python project to Azure Function App - AIHubApis
 on:
   push:
     branches: ["master"]
+  workflow_dispatch:
 
 env:
   AZURE_FUNCTIONAPP_NAME: 'AIHubApis'
