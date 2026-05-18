@@ -2,6 +2,7 @@
 
 A two-tier web application for managing and exploring Azure AI Foundry resources. Administrators sign in with Microsoft Entra ID and get a live view of subscriptions, foundries, projects, models, agents, connections, and guardrails across their Azure estate.
 
+correct Governance domain in place
 ---
 
 ## Architecture
