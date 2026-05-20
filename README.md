@@ -4,25 +4,106 @@ A two-tier web application for managing and exploring Azure AI Foundry resources
 
 ---
 
-## Architecture
+## Architecture and Security
+
+### System Block Diagram
 
 ```
-Browser (React + Vite)
-        │  MSAL Bearer token
-        ▼
-FastAPI Backend  (Azure Function App — AIHubApis)
-        │  ARM REST API calls
-        ▼
-Azure Resource Manager
-        │
-        ├── Subscriptions
-        ├── AI Foundries  (Microsoft.CognitiveServices/accounts)
-        ├── Projects
-        ├── Models
-        ├── Agents / Applications
-        ├── Connections
-        └── GuardRails
+╔══════════════════════════════════════════════════════════════════════════╗
+║                          USER / BROWSER                                  ║
+║                                                                          ║
+║   ┌──────────────────────────────────────────────────────────────────┐  ║
+║   │               FoundryPortal  (React + Vite SPA)                  │  ║
+║   │                                                                   │  ║
+║   │  ModelHub │ Inventory │ Tools │ Connections │ Consumption Panel   │  ║
+║   └─────────────────────────┬────────────────────────────────────────┘  ║
+║                             │  MSAL v4  loginPopup()                     ║
+╚═════════════════════════════╪════════════════════════════════════════════╝
+                              │
+                    ┌─────────▼──────────┐
+                    │    Azure AD         │  ◄─ Identity Provider
+                    │    (Entra ID)       │     App Registration
+                    │                     │     Scopes: openid, profile
+                    └─────────┬──────────┘
+                              │  JWT Bearer Token
+                              │  (in Authorization header)
+                              ▼
+╔══════════════════════════════════════════════════════════════════════════╗
+║               Azure Function App  —  AIHubApis                           ║
+║               FastAPI / Python 3.13   (centralus)                        ║
+║                                                                          ║
+║  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────────┐  ║
+║  │/projects │ │/models   │ │/agents   │ │/keys     │ │/consumption │  ║
+║  │/foundries│ │/subscript│ │/connecti │ │/Roles    │ │             │  ║
+║  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └─────────────┘  ║
+║                                                                          ║
+║  ┌────────────────────────────────────────────────────────────────────┐ ║
+║  │  IDENTITY:  DefaultAzureCredential                                  │ ║
+║  │             → User-Assigned Managed Identity  (AIManagedIdentity)   │ ║
+║  │             AZURE_CLIENT_ID env var required                        │ ║
+║  └────────────────────────────────────────────────────────────────────┘ ║
+║                                                                          ║
+╚═══════╤═══════════════════════════════════════════════╤════════════════╝
+        │                                               │
+        │  Managed Identity token                       │  APIM_ADMIN_KEY
+        │  (ARM REST API + Azure AI SDK)                │  (app setting)
+        │                                               │
+        ▼                                               ▼
+┌─────────────────────────┐              ┌──────────────────────────────┐
+│   Azure AI Foundry       │              │  APIM  —  AIGatewayAIDS      │
+│   Hub  (AI-102 RG)       │              │  Resource Group: AI-102       │
+│                          │              │                               │
+│  • Hub + Projects        │              │  AI Gateway policies:         │
+│  • Agents & Tools        │              │  • azure-openai-token-limit   │
+│  • Model deployments     │  ◄───calls───│  • Per-subscription quotas    │
+│  • Connections           │              │  • APIM internal cache        │
+│  • Foundry Local         │              │    usage|{subscriptionId}     │
+│                          │              │  • GET  /internal/usage       │
+│  Roles needed:           │              │  • DEL  /internal/usage       │
+│  Azure AI Developer      │              │                               │
+└─────────────────────────┘              │  Named Values:                │
+                                         │  • APIM_ADMIN_KEY (secret)    │
+                                         └──────────────────────────────┘
 ```
+
+### Authentication & Trust Boundaries
+
+| Layer | Auth Mechanism | Trust Direction |
+|-------|---------------|-----------------|
+| Browser → Backend | Azure AD JWT Bearer token | User must sign in |
+| Backend → Foundry | Managed Identity (no stored keys) | Identity-based |
+| Backend → APIM | APIM_ADMIN_KEY (app setting) | Key-based — rotate periodically |
+| Backend → Storage | Connection string (app setting) | Key-based ⚠ |
+| GitHub → Azure | AZURE_RBAC_CREDENTIALS secret | Service Principal (env: dev) |
+
+### Token Consumption Data Flow
+
+```
+User calls AI model via APIM
+      │
+      ▼
+APIM outbound policy intercepts response
+      │  reads prompt_tokens + completion_tokens
+      ▼
+APIM cache  →  usage|{subscriptionId}  →  {"gpt-4o": {"used": N, "limit": M}}
+      │
+      ▼
+ConsumptionPanel (frontend)
+      │  GET /api/consumption/?subscriptionId=...
+      ▼
+AIHubApis  →  APIM /internal/usage  →  returns JSON
+      │
+      ▼
+Rendered as progress bars per project per model
+```
+
+### Security Notes
+
+- **Strong**: Backend-to-Foundry uses Managed Identity — no stored credentials for AI service access
+- **Acceptable**: APIM admin key is stored in Function App settings (not in git) — rotate periodically
+- **Improvement opportunity**: `AzureWebJobsStorage` uses a connection string; can be migrated to Managed Identity via `AzureWebJobsStorage__accountName` app setting
+- **CORS**: FastAPI is configured with `allow_origins=["*"]` — acceptable for internal tooling, restrict if ever customer-facing
+- **Token validation**: The Bearer token from the browser is forwarded to ARM but not independently validated server-side
 
 **Frontend** — React 18 + Vite + Tailwind CSS, deployed to Azure App Service (`FoundryDevPortal`)  
 **Backend** — Python FastAPI hosted as an Azure Function App (`AIHubApis`)  
