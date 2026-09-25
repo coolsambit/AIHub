@@ -13,11 +13,10 @@ import Header from './Header';
 import SubscriptionDashboard from './SubscriptionDashboard';
 import ModelDetails from './features/subscriptions-auth/ModelDetails';
 import ModelHub from './features/ModelHub';
+import AgentHub from './features/AgentHub';
+import AIGateway from './features/AIGateway';
 import LoginPage from './LoginPage';
 import Home from './Home';
-function AgentManagementPage() {
-	return <div className="max-w-3xl mx-auto mt-8 p-8 bg-white rounded-xl shadow border border-gray-200"><h2 className="text-2xl font-bold mb-4">Agent Management</h2><p>Agent management features will appear here.</p></div>;
-}
 
 async function withRetry(fn, attempts = 2) {
 	for (let i = 0; i < attempts; i++) {
@@ -299,7 +298,8 @@ function App() {
 					<Route path="/" element={<Home subscriptionRoles={subscriptionRoles} cognitiveRoles={cognitiveRoles} azureAiRoles={azureAiRoles} />} />
 					<Route path="/inventory" element={<SubscriptionDashboard {...inventoryProps} />} />
 					<Route path="/models" element={<ModelHub foundries={foundries} selectedSubscription={selectedSubscription} getAccessToken={getAccessToken} />} />
-					<Route path="/agents" element={<AgentManagementPage />} />
+					<Route path="/agents" element={<AgentHub />} />
+					<Route path="/gateway" element={<AIGateway />} />
 					<Route path="/model/:modelId" element={<ModelDetails />} />
 				</Routes>
 			</main>

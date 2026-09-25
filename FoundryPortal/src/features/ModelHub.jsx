@@ -31,6 +31,21 @@ const MaaSBadge = () => (
   </span>
 );
 
+const HOST_STYLES = {
+  'AKS':     'bg-sky-50 text-sky-700 border-sky-200',
+  'ARO':     'bg-red-50 text-red-700 border-red-200',
+  'Web App': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+};
+
+const HostBadge = ({ label }) => (
+  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${HOST_STYLES[label] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"/>
+    </svg>
+    {label}
+  </span>
+);
+
 const ProvisionedStar = () => (
   <span title="Deployed in your Foundry" className="inline-flex items-center">
     <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
@@ -39,7 +54,7 @@ const ProvisionedStar = () => (
   </span>
 );
 
-const ModelCard = ({ name, description, tasks = [], learnMore, sub, maas, provisioned }) => (
+const ModelCard = ({ name, description, tasks = [], learnMore, sub, maas, hosts = [], provisioned }) => (
   <div className={`bg-white border rounded-xl p-4 shadow-sm flex flex-col gap-2 hover:shadow-md transition-shadow ${provisioned ? 'border-yellow-300 ring-1 ring-yellow-200' : 'border-gray-100'}`}>
     <div className="flex items-start justify-between gap-2">
       <div className="flex items-center gap-1.5 min-w-0">
@@ -55,6 +70,7 @@ const ModelCard = ({ name, description, tasks = [], learnMore, sub, maas, provis
     <p className="text-xs text-gray-600 leading-relaxed flex-1">{description}</p>
     <div className="flex flex-wrap gap-1 mt-auto pt-1">
       {maas && <MaaSBadge />}
+      {hosts.map(h => <HostBadge key={h} label={h} />)}
       {tasks.map(t => <TaskBadge key={t} label={t} />)}
     </div>
   </div>
@@ -263,57 +279,64 @@ const PARTNER = [
 const SELF_HOSTED = [
   {
     name: 'Phi-3.8B / Phi-mini',
-    sub: 'Foundry Local — on-device',
-    description: 'Ultra-compact Phi models optimised for CPU/NPU inference. Run entirely on your machine via Foundry Local with no data leaving the device.',
-    tasks: ['Chat', 'Local'],
-    learnMore: 'https://learn.microsoft.com/en-us/azure/foundry-local/get-started',
+    sub: 'Microsoft — ONNX / vLLM container',
+    description: 'Ultra-compact Phi models that run well on CPU. Small enough to containerise on a Web App, or scale out on AKS / ARO GPU node pools.',
+    tasks: ['Chat'],
+    hosts: ['AKS', 'ARO', 'Web App'],
+    learnMore: 'https://huggingface.co/microsoft',
     matchKeys: ['phi-3.8b', 'phi-mini', 'phi-3-mini'],
   },
   {
     name: 'Qwen 2.5 (7B / 14B / 72B)',
-    sub: 'Alibaba Cloud — Model Registry / Foundry Local',
-    description: "Alibaba's open-weight series covering text, code, and math. Available via HuggingFace, the Foundry Model Registry, or Foundry Local.",
-    tasks: ['Chat', 'Code', 'Reasoning', 'Local'],
+    sub: 'Alibaba Cloud — HuggingFace open weights',
+    description: "Alibaba's open-weight series covering text, code, and math. Serve with vLLM or KServe on GPU node pools; larger variants need multi-GPU nodes.",
+    tasks: ['Chat', 'Code', 'Reasoning'],
+    hosts: ['AKS', 'ARO'],
     learnMore: 'https://huggingface.co/Qwen',
     matchKeys: ['qwen2.5', 'qwen-2.5'],
   },
   {
     name: 'DeepSeek R1 / V3',
-    sub: 'DeepSeek — Model Registry / Foundry Local',
-    description: 'Open-source reasoning and instruction models from DeepSeek. Competitive with frontier models on math and code benchmarks.',
-    tasks: ['Reasoning', 'Code', 'Local'],
+    sub: 'DeepSeek — HuggingFace open weights',
+    description: 'Open-source reasoning and instruction models competitive with frontier models on math and code. Distilled variants fit on a single GPU node.',
+    tasks: ['Reasoning', 'Code'],
+    hosts: ['AKS', 'ARO'],
     learnMore: 'https://huggingface.co/deepseek-ai',
     matchKeys: ['deepseek-r1', 'deepseek-v3'],
   },
   {
     name: 'Mistral 7B / NeMo',
-    sub: 'Mistral AI — HuggingFace / Model Registry',
-    description: 'Community-favourite open weights. Deploy to Azure via Model Registry or run locally. NeMo variant is enterprise-licensed.',
-    tasks: ['Chat', 'Code', 'Local'],
+    sub: 'Mistral AI — HuggingFace open weights',
+    description: 'Community-favourite open weights with an OpenAI-compatible serving path via vLLM. NeMo variant is enterprise-licensed.',
+    tasks: ['Chat', 'Code'],
+    hosts: ['AKS', 'ARO'],
     learnMore: 'https://huggingface.co/mistralai',
     matchKeys: ['mistral-7b', 'mistral-nemo'],
   },
   {
     name: 'Llama 3.2 1B / 3B',
-    sub: 'Meta — Foundry Local / Model Registry',
-    description: 'Tiny, mobile-grade Llama models for on-device inference or resource-constrained deployments. Multilingual with vision variants.',
-    tasks: ['Chat', 'Local'],
-    learnMore: 'https://learn.microsoft.com/en-us/azure/foundry-local/get-started',
+    sub: 'Meta — HuggingFace open weights',
+    description: 'Tiny Llama models for resource-constrained deployments. Light enough for CPU inference in a Web App container.',
+    tasks: ['Chat', 'Multilingual'],
+    hosts: ['AKS', 'ARO', 'Web App'],
+    learnMore: 'https://huggingface.co/meta-llama',
     matchKeys: ['llama-3.2-1b', 'llama-3.2-3b'],
   },
   {
     name: 'HuggingFace Hub models',
-    sub: 'Community — Azure Model Registry',
-    description: 'Any HuggingFace model can be registered in your Azure AI Model Registry, evaluated in Foundry, and deployed to managed endpoints or Foundry Local.',
+    sub: 'Community — any open-weight model',
+    description: 'Package any HuggingFace model in a serving container (vLLM, TGI, Triton) and deploy it to your own cluster or App Service plan.',
     tasks: ['Custom'],
-    learnMore: 'https://learn.microsoft.com/en-us/azure/machine-learning/how-to-create-model-packages-with-hugging-face',
+    hosts: ['AKS', 'ARO', 'Web App'],
+    learnMore: 'https://huggingface.co/models',
     matchKeys: [],
   },
   {
     name: 'Custom fine-tuned models',
     sub: 'Your Azure AI Model Registry',
-    description: 'Fine-tune any base model on your domain data using Azure AI Foundry fine-tuning, then register and deploy it as a versioned model asset within your project.',
+    description: 'Fine-tune a base model on your domain data, register it as a versioned asset, then pull it into your own inference stack.',
     tasks: ['Custom'],
+    hosts: ['AKS', 'ARO', 'Web App'],
     learnMore: 'https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/fine-tuning-overview',
     matchKeys: [],
   },
@@ -372,6 +395,108 @@ const SELF_HOSTED_ICON = (
   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 12H3l9-9 9 9h-2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
   </svg>
+);
+
+const HOSTING_TARGETS = [
+  {
+    name: 'AKS',
+    title: 'Azure Kubernetes Service',
+    style: 'border-sky-200 bg-sky-50',
+    titleClass: 'text-sky-800',
+    bestFor: 'GPU inference at scale',
+    points: [
+      'GPU node pools with autoscaling',
+      'KAITO operator automates model deployment',
+      'Serve via vLLM, KServe or Triton',
+    ],
+    learnMore: 'https://learn.microsoft.com/en-us/azure/aks/ai-toolchain-operator',
+  },
+  {
+    name: 'ARO',
+    title: 'Azure Red Hat OpenShift',
+    style: 'border-red-200 bg-red-50',
+    titleClass: 'text-red-800',
+    bestFor: 'Enterprise OpenShift estates',
+    points: [
+      'Jointly managed by Microsoft and Red Hat',
+      'Red Hat OpenShift AI for model serving',
+      'Fits existing OpenShift governance and pipelines',
+    ],
+    learnMore: 'https://learn.microsoft.com/en-us/azure/openshift/intro-openshift',
+  },
+  {
+    name: 'Web App',
+    title: 'Azure App Service',
+    style: 'border-indigo-200 bg-indigo-50',
+    titleClass: 'text-indigo-800',
+    bestFor: 'Small models, low ops overhead',
+    points: [
+      'Deploy a model-serving container, no cluster to manage',
+      'CPU only: suits small models (Phi-mini, Llama 1B/3B, ONNX)',
+      'Built-in auth, scaling and private networking',
+    ],
+    learnMore: 'https://learn.microsoft.com/en-us/azure/app-service/overview',
+  },
+];
+
+const HostingTargets = () => (
+  <div className="w-full bg-white border border-teal-200 rounded-2xl p-4 md:p-6 mb-6 shadow-sm">
+    <h2 className="text-base font-bold text-teal-800 mb-1">Where you can host</h2>
+    <p className="text-xs text-gray-500 mb-4">
+      Self-hosted models run on infrastructure you own and operate. You manage compute, scaling, patching and security, and the model and its data stay inside your own Azure environment.
+    </p>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      {HOSTING_TARGETS.map(t => (
+        <div key={t.name} className={`border rounded-xl p-3 flex flex-col gap-2 ${t.style}`}>
+          <div className="flex items-center justify-between gap-2">
+            <HostBadge label={t.name} />
+            <a href={t.learnMore} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline shrink-0">docs ↗</a>
+          </div>
+          <p className={`text-sm font-bold ${t.titleClass}`}>{t.title}</p>
+          <p className="text-xs font-semibold text-gray-600">Best for: {t.bestFor}</p>
+          <ul className="text-xs text-gray-600 list-disc pl-4 space-y-0.5">
+            {t.points.map(p => <li key={p}>{p}</li>)}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const HOSTING_TYPES = [
+  {
+    id: 'maas',
+    label: 'MaaS',
+    caption: 'Hosted in Foundry on Microsoft infrastructure',
+  },
+  {
+    id: 'self',
+    label: 'Self-Hosted',
+    caption: 'AKS · ARO · Web App',
+  },
+];
+
+const HostingTypeToggle = ({ value, onChange, counts }) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+    {HOSTING_TYPES.map(t => {
+      const active = value === t.id;
+      return (
+        <button
+          key={t.id}
+          onClick={() => onChange(t.id)}
+          className={`text-left rounded-2xl border px-4 py-3 transition-colors ${active ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'bg-white border-gray-200 text-gray-800 hover:border-blue-300 hover:bg-blue-50'}`}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-base font-bold">{t.label}</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full border font-semibold ${active ? 'bg-white/20 border-white/30 text-white' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+              {counts[t.id]} models
+            </span>
+          </div>
+          <p className={`text-xs mt-0.5 ${active ? 'text-blue-100' : 'text-gray-500'}`}>{t.caption}</p>
+        </button>
+      );
+    })}
+  </div>
 );
 
 function buildDeployedNames(allModels = []) {
@@ -757,6 +882,7 @@ function FoundryGroup({ name, models, defaultOpen }) {
 export default function ModelHub({ foundries = [], selectedSubscription = '', getAccessToken = () => Promise.resolve(null) }) {
   const isAuthenticated = useIsAuthenticated();
   const [allModels, setAllModels] = useState([]);
+  const [hostingType, setHostingType] = useState('maas');
   const deployedNames = buildDeployedNames(allModels);
   const provisionedCount = [...FIRST_PARTY, ...PARTNER, ...SELF_HOSTED]
     .filter(m => isProvisioned(m.matchKeys || [], deployedNames)).length;
@@ -769,7 +895,7 @@ export default function ModelHub({ foundries = [], selectedSubscription = '', ge
         <div className="flex-1">
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-1">Model Hub</h1>
           <p className="text-blue-100 text-sm md:text-base max-w-2xl">
-            Explore AI models available through Azure AI Foundry — from Microsoft-built models and curated partner models to open-source and self-hosted options you can run in your own registry or on local hardware.
+            Explore AI models by hosting type: Models-as-a-Service hosted in Azure AI Foundry on Microsoft infrastructure, or open-weight models you self-host on AKS, ARO or Azure Web App.
           </p>
         </div>
         <a
@@ -818,7 +944,14 @@ export default function ModelHub({ foundries = [], selectedSubscription = '', ge
         {/* Left — all catalog sections + Foundry Local */}
         <div className="flex-1 min-w-0 flex flex-col">
 
-          {/* Category 1 — Microsoft First-Party */}
+          <HostingTypeToggle
+            value={hostingType}
+            onChange={setHostingType}
+            counts={{ maas: FIRST_PARTY.length + PARTNER.length, self: SELF_HOSTED.length }}
+          />
+
+          {hostingType === 'maas' && (<>
+          {/* MaaS 1 — Microsoft First-Party */}
           <CategorySection
             color="blue"
             icon={FIRST_PARTY_ICON}
@@ -831,7 +964,7 @@ export default function ModelHub({ foundries = [], selectedSubscription = '', ge
             deployedNames={deployedNames}
           />
 
-          {/* Category 2 — Microsoft Partner */}
+          {/* MaaS 2 — Microsoft Partner */}
           <CategorySection
             color="violet"
             icon={PARTNER_ICON}
@@ -844,13 +977,16 @@ export default function ModelHub({ foundries = [], selectedSubscription = '', ge
             deployedNames={deployedNames}
           />
 
-          {/* Category 3 — Third-Party / Self-Hosted */}
+          </>)}
+
+          {hostingType === 'self' && (<>
+          <HostingTargets />
+
           <CategorySection
             color="teal"
             icon={SELF_HOSTED_ICON}
-            title="Third-Party & Self-Hosted Models"
-            subtitle="Open-source models from HuggingFace or the community — host in your Azure Model Registry or run on-device via Foundry Local"
-            learnMoreUrl="https://learn.microsoft.com/en-us/azure/foundry-local/get-started"
+            title="Self-Hosted Models"
+            subtitle="Open-weight models you package and run on your own AKS cluster, ARO cluster or Azure Web App"
             models={SELF_HOSTED}
             borderClass="border-teal-200"
             bgClass="bg-teal-50"
@@ -888,10 +1024,11 @@ export default function ModelHub({ foundries = [], selectedSubscription = '', ge
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-3">
-              Once tested locally, you can push the same model to your Azure AI Model Registry and scale it to the cloud.{' '}
+              Once tested locally, you can package the same model and promote it to AKS, ARO or a Web App.{' '}
               <a href="https://learn.microsoft.com/en-us/azure/foundry-local/get-started" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Learn more ↗</a>
             </p>
           </div>
+          </>)}
 
         </div>
 

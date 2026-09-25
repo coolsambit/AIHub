@@ -194,7 +194,7 @@ npm install
 npm run dev
 ```
 
-Portal runs at `http://localhost:5173`
+Portal runs at `http://localhost:4174`
 
 Set the backend URL in `FoundryPortal/.env`:
 
@@ -273,3 +273,64 @@ Direct pushes to `master` and `Dev` are blocked via GitHub branch protection rul
 | Frontend hosting | Azure App Service |
 | CI/CD | GitHub Actions |
 | Azure identity | DefaultAzureCredential + Bearer token forwarding |
+
+---
+
+## References
+
+Sources behind the content of the portal's **Agents**, **AI Gateway** and **Model Hub** pages.
+
+### Agents — hosting and deployment
+
+- [Hosted agents in Foundry Agent Service](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/hosted-agents)
+- [Deploy a hosted agent](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/deploy-hosted-agent)
+- [Host Microsoft Agent Framework agents as Foundry hosted agents](https://learn.microsoft.com/en-us/azure/foundry/how-to/develop/framework-hosted-agents)
+- [Host LangGraph agents as Foundry hosted agents](https://learn.microsoft.com/en-us/azure/foundry/how-to/develop/langchain-hosted-agents)
+- [Agentic app with LangGraph or Foundry Agent Service on Azure App Service (Python)](https://learn.microsoft.com/en-us/azure/app-service/tutorial-ai-agent-web-app-langgraph-foundry-python)
+- [AKS Workload ID overview](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
+
+### Agents — Microsoft Agent Framework (Python get-started)
+
+- [Step 1: Your first agent](https://learn.microsoft.com/en-us/agent-framework/get-started/your-first-agent?pivots=programming-language-python)
+- [Step 2: Add tools](https://learn.microsoft.com/en-us/agent-framework/get-started/add-tools?pivots=programming-language-python)
+- [Step 3: Multi-turn conversations](https://learn.microsoft.com/en-us/agent-framework/get-started/multi-turn?pivots=programming-language-python)
+- [Step 4: Memory & persistence](https://learn.microsoft.com/en-us/agent-framework/get-started/memory?pivots=programming-language-python)
+- [Step 5: Workflows](https://learn.microsoft.com/en-us/agent-framework/get-started/workflows?pivots=programming-language-python)
+- [Step 6: Agent harness](https://learn.microsoft.com/en-us/agent-framework/get-started/harness?pivots=programming-language-python)
+- [Memory sample (imports and entry point)](https://github.com/microsoft/agent-framework/blob/main/python/samples/01-get-started/04_memory.py)
+
+### Agents — registration and governance
+
+- [Register and manage agents in Azure API Center](https://learn.microsoft.com/en-us/azure/api-center/register-manage-agents)
+- [Agent Registry in Microsoft 365 admin center](https://learn.microsoft.com/en-us/microsoft-365/admin/manage/agent-registry?view=o365-worldwide)
+
+### Agents — security and Entra identity
+
+- [What is Microsoft Entra Agent ID?](https://learn.microsoft.com/en-us/entra/agent-id/what-is-microsoft-entra-agent-id)
+- [Conditional Access for agents](https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id)
+- [Agent identity blueprints](https://learn.microsoft.com/en-us/entra/agent-id/agent-blueprint)
+- [Securing AI agents: when AI tools move from reading to acting (Microsoft Security blog)](https://www.microsoft.com/en-us/security/blog/2026/06/30/securing-ai-agents-ai-tools-move-from-reading-acting/)
+- [Defend against indirect prompt injection attacks](https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection)
+- [Alerts for AI agents — Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/alerts-ai-workloads#alerts-for-ai-agents)
+
+### AI Gateway
+
+- [AI gateway capabilities in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/genai-gateway-capabilities)
+- [LLM token limit policy](https://learn.microsoft.com/en-us/azure/api-management/llm-token-limit-policy)
+- [Enforce content safety checks on LLM requests](https://learn.microsoft.com/en-us/azure/api-management/llm-content-safety-policy)
+- [Enable semantic caching for LLM APIs](https://learn.microsoft.com/en-us/azure/api-management/azure-openai-enable-semantic-caching)
+- [Emit token consumption metrics](https://learn.microsoft.com/en-us/azure/api-management/llm-emit-token-metric-policy)
+- [API Management backends — load balancing and circuit breaker](https://learn.microsoft.com/en-us/azure/api-management/backends)
+- [Authenticate and authorize access to LLM APIs](https://learn.microsoft.com/en-us/azure/api-management/api-management-authenticate-authorize-ai-apis)
+- [Configure AI Gateway in your Foundry resources](https://learn.microsoft.com/en-us/azure/foundry/configuration/enable-ai-api-management-gateway-portal)
+- [Enforce token limits for models (Foundry control plane)](https://learn.microsoft.com/en-us/azure/foundry/control-plane/how-to-enforce-limits-models)
+- [Govern MCP tools by using an AI gateway](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/governance)
+- [AI gateway reference architecture using API Management](https://learn.microsoft.com/en-us/ai/playbook/technology-guidance/generative-ai/dev-starters/genai-gateway/reference-architectures/apim-based)
+
+### Model Hub — self-hosted model targets
+
+- [AI toolchain operator (KAITO) on AKS](https://learn.microsoft.com/en-us/azure/aks/ai-toolchain-operator)
+- [Azure Red Hat OpenShift overview](https://learn.microsoft.com/en-us/azure/openshift/intro-openshift)
+- [Azure App Service overview](https://learn.microsoft.com/en-us/azure/app-service/overview)
+
+> The Dockerfile, AKS and Web App snippets on the Agents → Hosting page, the assembled memory agent on the Build page, and the policy XML and client snippets on the AI Gateway page are reference patterns built from these sources — not official Microsoft samples.
