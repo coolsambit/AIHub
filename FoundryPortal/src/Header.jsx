@@ -43,6 +43,7 @@ const Header = ({ onSignInClick, userRoles = [] }) => {
 		{ to: "/inventory", label: "Inventory" },
 		{ to: "/models", label: "Model Hub" },
 		{ to: "/agents", label: "Agent Hub" },
+		{ to: "/gateway", label: "AI Gateway" },
 	];
 
 	return (
